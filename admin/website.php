@@ -225,9 +225,7 @@ include __DIR__ . '/library/header.php';
                     <button class="nav-link text-start fw-medium d-flex align-items-center gap-2 mb-1 p-2" style="border-radius: 8px;" data-bs-toggle="pill" data-bs-target="#tab-google" type="button" role="tab">
                         <i class="ph ph-google-logo" style="font-size: 18px;"></i> SSO Google
                     </button>
-                    <button class="nav-link text-start fw-medium d-flex align-items-center gap-2 mb-1 p-2" id="tab-konten" style="border-radius: 8px;" data-bs-toggle="pill" data-bs-target="#tab-pane-konten" type="button" role="tab">
-                        <i class="ph ph-images" style="font-size: 18px;"></i> Konten Dashboard
-                    </button>
+
                 </div>
                 
                 <style>

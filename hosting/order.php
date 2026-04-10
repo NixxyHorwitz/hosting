@@ -155,65 +155,31 @@ include __DIR__ . '/../library/header.php';
 document.addEventListener('DOMContentLoaded', function() {
     <?php if ($error_popup === 'server_full'): ?>
     Swal.fire({
-        icon: 'info',
-        title: 'Kapasitas Sedang Penuh',
-        html: `<p style="font-size:14px;color:#555;line-height:1.7;">
-            Maaf, seluruh kapasitas server kami sedang digunakan secara maksimal.<br><br>
-            Tim teknis kami sedang bekerja untuk memperluas kapasitas.
-        </p>`,
-        confirmButtonText: '← Kembali ke Paket',
+        icon: 'warning',
+        title: 'Server Sedang Penuh',
+        text: 'Maaf, server kami sedang penuh. Silakan coba beberapa saat lagi.',
+        confirmButtonText: 'Kembali',
         confirmButtonColor: '#007bff',
         allowOutsideClick: false,
-        customClass: { popup: 'swal-wide' }
-    }).then(function(result) {
-        if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-            window.location.href = '/hosting/tickets';
-        } else {
-            window.history.back();
-        }
-    });
+    }).then(() => window.history.back());
     <?php elseif ($error_popup === 'payment_error'): ?>
     Swal.fire({
         icon: 'warning',
-        title: 'Pembayaran Tidak Dapat Diproses',
-        html: `<p style="font-size:14px;color:#555;line-height:1.7;">
-            Terjadi kendala saat memproses transaksi pembayaran Anda.<br>
-            Pastikan koneksi internet stabil dan coba beberapa saat lagi.<br><br>
-            Jika masalah berlanjut, silakan <a href="/hosting/tickets" style="color:#007bff;">buat tiket support</a>.
-        </p>`,
-        confirmButtonText: 'Coba Lagi',
+        title: 'Server Sedang Penuh',
+        text: 'Maaf, server kami sedang penuh. Silakan coba beberapa saat lagi.',
+        confirmButtonText: 'Kembali',
         confirmButtonColor: '#007bff',
-        showCancelButton: true,
-        cancelButtonText: 'Hubungi Support',
-        cancelButtonColor: '#6c757d',
-    }).then(function(result) {
-        if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-            window.location.href = '/hosting/tickets';
-        } else {
-            window.history.back();
-        }
-    });
+        allowOutsideClick: false,
+    }).then(() => window.history.back());
     <?php elseif ($error_popup === 'db_error'): ?>
     Swal.fire({
-        icon: 'error',
-        title: 'Terjadi Kesalahan Sistem',
-        html: `<p style="font-size:14px;color:#555;line-height:1.7;">
-            Pesanan Anda tidak dapat diselesaikan saat ini karena kendala teknis.<br>
-            Data Anda tetap aman dan transaksi tidak dikenakan biaya.<br><br>
-            Silakan coba kembali atau <a href="/hosting/tickets" style="color:#007bff;">hubungi support</a>.
-        </p>`,
-        confirmButtonText: 'Coba Lagi',
-        confirmButtonColor: '#dc3545',
-        showCancelButton: true,
-        cancelButtonText: 'Buat Tiket',
-        cancelButtonColor: '#6c757d',
-    }).then(function(result) {
-        if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
-            window.location.href = '/hosting/tickets';
-        } else {
-            window.history.back();
-        }
-    });
+        icon: 'warning',
+        title: 'Server Sedang Penuh',
+        text: 'Maaf, server kami sedang penuh. Silakan coba beberapa saat lagi.',
+        confirmButtonText: 'Kembali',
+        confirmButtonColor: '#007bff',
+        allowOutsideClick: false,
+    }).then(() => window.history.back());
     <?php endif; ?>
 });
 </script>
