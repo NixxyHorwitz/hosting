@@ -29,10 +29,10 @@ if (isset($_GET['update_status']) && isset($_GET['id'])) {
     try {
         if ($new_status == 'active') {
             $whm->unsuspendAccount($cp_user);
-            $mail_result = sendEmailTemplate($u_email, $u_nama, 'hosting_unsuspended', ['nama' => $u_nama, 'domain' => $domain]);
+            $mail_result = sendEmailTemplate($u_email, $u_nama, 'unsuspend_hosting', ['nama' => $u_nama, 'domain' => $domain]);
         } elseif ($new_status == 'suspended') {
             $whm->suspendAccount($cp_user, "Aksi Admin");
-            $mail_result = sendEmailTemplate($u_email, $u_nama, 'hosting_suspended', ['nama' => $u_nama, 'domain' => $domain]);
+            $mail_result = sendEmailTemplate($u_email, $u_nama, 'suspend_hosting', ['nama' => $u_nama, 'domain' => $domain]);
         } else {
             $mail_result = true;
         }
