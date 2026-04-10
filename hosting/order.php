@@ -101,58 +101,129 @@ if (isset($_POST['proses_checkout'])) {
             ");
             
             if (mysqli_num_rows($whm_av_query) == 0) {
-                echo "<script>alert('Saat ini server sedang penuh'); window.history.back();</script>";
-                exit();
-            }
-            
-            $whm_server = mysqli_fetch_assoc($whm_av_query);
-            $whm_id = $whm_server['id'];
+                $error_popup = "server_full";
+            } else {
+                $whm_server = mysqli_fetch_assoc($whm_av_query);
+                $whm_id = $whm_server['id'];
 
-            mysqli_begin_transaction($conn);
-            try {
-                // INSERT TERMASUK whm_package_name DAN whm_id
-                $sql_order = "INSERT INTO orders 
-                (user_id, domain, hosting_plan_id, whm_package_name, total_harga, durasi, status, expiry_date, status_pembayaran, whm_id) 
-                VALUES 
-                ('$current_user_id', '$domain', '$plan_id', '$whm_package', '$final_amount', '$durasi', 'pending', '$expiry_date', 'pending', '$whm_id')";
-                
-                if (!mysqli_query($conn, $sql_order)) {
-                    throw new Exception(mysqli_error($conn));
+                mysqli_begin_transaction($conn);
+                try {
+                    // INSERT TERMASUK whm_package_name DAN whm_id
+                    $sql_order = "INSERT INTO orders 
+                    (user_id, domain, hosting_plan_id, whm_package_name, total_harga, durasi, status, expiry_date, status_pembayaran, whm_id) 
+                    VALUES 
+                    ('$current_user_id', '$domain', '$plan_id', '$whm_package', '$final_amount', '$durasi', 'pending', '$expiry_date', 'pending', '$whm_id')";
+                    
+                    if (!mysqli_query($conn, $sql_order)) {
+                        throw new Exception(mysqli_error($conn));
+                    }
+
+                    $order_id = mysqli_insert_id($conn);
+                    
+                    $sql_invoice = "INSERT INTO invoices
+                    (user_id, order_id, jenis_tagihan, total_tagihan, status, reference_id, qr_code_url, date_due)
+                    VALUES
+                    ('$current_user_id', '$order_id', 'baru', '$final_amount', 'unpaid', '$reference_id', '$qr_url', DATE_ADD(NOW(), INTERVAL 1 DAY))";
+                    
+                    if (!mysqli_query($conn, $sql_invoice)) {
+                        throw new Exception(mysqli_error($conn));
+                    }
+                    
+                    $invoice_id = mysqli_insert_id($conn);
+
+                    mysqli_commit($conn);
+                    
+                    header("Location: /hosting/invoice/$invoice_id?msg=success");
+                    exit();
+                } catch (Exception $e) {
+                    mysqli_rollback($conn);
+                    $error_popup = 'db_error';
                 }
-
-                $order_id = mysqli_insert_id($conn);
-                
-                $sql_invoice = "INSERT INTO invoices
-                (user_id, order_id, jenis_tagihan, total_tagihan, status, reference_id, qr_code_url, date_due)
-                VALUES
-                ('$current_user_id', '$order_id', 'baru', '$final_amount', 'unpaid', '$reference_id', '$qr_url', DATE_ADD(NOW(), INTERVAL 1 DAY))";
-                
-                if (!mysqli_query($conn, $sql_invoice)) {
-                    throw new Exception(mysqli_error($conn));
-                }
-                
-                $invoice_id = mysqli_insert_id($conn);
-
-                mysqli_commit($conn);
-                
-                header("Location: /hosting/invoice/$invoice_id?msg=success");
-                exit();
-            } catch (Exception $e) {
-                mysqli_rollback($conn);
-                die("Kesalahan database: " . $e->getMessage());
-            }
+            } // end else server available
         } else {
-            $api_error = isset($result['message']) ? addslashes($result['message']) : 'Gagal menghubungi Payment Gateway.';
-            if ($curl_err) {
-                $api_error .= " (cURL Error: " . addslashes($curl_err) . ")";
-            }
-            echo "<script>alert('Payment API Error: " . $api_error . "'); window.history.back();</script>";
-            exit();
+            $api_error = isset($result['message']) ? htmlspecialchars($result['message'], ENT_QUOTES) : 'Gagal menghubungi Payment Gateway.';
+            $error_popup = 'payment_error';
         }
     }
 }
 include __DIR__ . '/../library/header.php';
 ?>
+
+<?php if (!empty($error_popup)): ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    <?php if ($error_popup === 'server_full'): ?>
+    Swal.fire({
+        icon: 'info',
+        title: 'Kapasitas Sedang Penuh',
+        html: `<p style="font-size:14px;color:#555;line-height:1.7;">
+            Maaf, seluruh kapasitas server kami sedang digunakan secara maksimal.<br><br>
+            Tim teknis kami sedang bekerja untuk memperluas kapasitas.
+            Silakan coba kembali dalam <strong>beberapa saat</strong> atau
+            <a href="/hosting/tickets" style="color:#007bff;">hubungi tim support kami</a> untuk informasi lebih lanjut.
+        </p>`,
+        confirmButtonText: '← Kembali ke Paket',
+        confirmButtonColor: '#007bff',
+        showCancelButton: true,
+        cancelButtonText: 'Hubungi Support',
+        cancelButtonColor: '#6c757d',
+        allowOutsideClick: false,
+        customClass: { popup: 'swal-wide' }
+    }).then(function(result) {
+        if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+            window.location.href = '/hosting/tickets';
+        } else {
+            window.history.back();
+        }
+    });
+    <?php elseif ($error_popup === 'payment_error'): ?>
+    Swal.fire({
+        icon: 'warning',
+        title: 'Pembayaran Tidak Dapat Diproses',
+        html: `<p style="font-size:14px;color:#555;line-height:1.7;">
+            Terjadi kendala saat memproses transaksi pembayaran Anda.<br>
+            Pastikan koneksi internet stabil dan coba beberapa saat lagi.<br><br>
+            Jika masalah berlanjut, silakan <a href="/hosting/tickets" style="color:#007bff;">buat tiket support</a>.
+        </p>`,
+        confirmButtonText: 'Coba Lagi',
+        confirmButtonColor: '#007bff',
+        showCancelButton: true,
+        cancelButtonText: 'Hubungi Support',
+        cancelButtonColor: '#6c757d',
+    }).then(function(result) {
+        if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+            window.location.href = '/hosting/tickets';
+        } else {
+            window.history.back();
+        }
+    });
+    <?php elseif ($error_popup === 'db_error'): ?>
+    Swal.fire({
+        icon: 'error',
+        title: 'Terjadi Kesalahan Sistem',
+        html: `<p style="font-size:14px;color:#555;line-height:1.7;">
+            Pesanan Anda tidak dapat diselesaikan saat ini karena kendala teknis.<br>
+            Data Anda tetap aman dan transaksi tidak dikenakan biaya.<br><br>
+            Silakan coba kembali atau <a href="/hosting/tickets" style="color:#007bff;">hubungi support</a>.
+        </p>`,
+        confirmButtonText: 'Coba Lagi',
+        confirmButtonColor: '#dc3545',
+        showCancelButton: true,
+        cancelButtonText: 'Buat Tiket',
+        cancelButtonColor: '#6c757d',
+    }).then(function(result) {
+        if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+            window.location.href = '/hosting/tickets';
+        } else {
+            window.history.back();
+        }
+    });
+    <?php endif; ?>
+});
+</script>
+<?php endif; ?>
+
 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
     <div>
         <h4 class="fw-bold text-dark m-0" style="font-size: 1.2rem;">Konfigurasi Layanan Baru</h4>
