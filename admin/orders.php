@@ -392,24 +392,44 @@ function doCreateWhm(id, el) {
     });
 }
 
+// ── Helper: animasi loading generik di status cell
+function setRowLoading(id, text, color) {
+    const cell = $(`#order-row-${id} td:nth-child(6)`);
+    cell.data('orig', cell.html());
+    let dots = 0;
+    cell.data('iv', setInterval(() => {
+        dots = (dots + 1) % 4;
+        cell.html(`<span style="color:${color};font-weight:700;"><i class="ph ph-spinner-gap" style="animation:spin .8s linear infinite;display:inline-block;"></i> ${text}${'.'.repeat(dots)}</span>`);
+    }, 400));
+}
+function clearRowLoading(id) {
+    const cell = $(`#order-row-${id} td:nth-child(6)`);
+    clearInterval(cell.data('iv'));
+    cell.html(cell.data('orig') || '');
+}
+
 // ── Suspend / Aktifkan
 function doAction(id, action, status, el) {
     event.preventDefault();
-    const label = status === 'active' ? 'Aktifkan' : 'Suspend';
-    const color = status === 'active' ? 'var(--ok)' : 'var(--warn)';
-    const icon  = status === 'active' ? 'question' : 'warning';
+    const label     = status === 'active' ? 'Aktifkan' : 'Suspend';
+    const btnColor  = status === 'active' ? 'var(--ok)' : 'var(--warn)';
+    const animText  = status === 'active' ? 'Activating' : 'Suspending';
+    const animColor = status === 'active' ? '#10b981' : '#f59e0b';
+    const icon      = status === 'active' ? 'question' : 'warning';
     Swal.fire({
         icon, title: label + ' Hosting?',
         html: `Order <b>#${id}</b> akan di-<b>${label.toLowerCase()}</b>.`,
         showCancelButton: true,
         confirmButtonText: label, cancelButtonText: 'Batal',
-        confirmButtonColor: color, cancelButtonColor: 'var(--surface)',
+        confirmButtonColor: btnColor, cancelButtonColor: 'var(--surface)',
         background: 'var(--card)', color: 'var(--text)', reverseButtons: true,
     }).then(r => {
         if (!r.isConfirmed) return;
+        setRowLoading(id, animText, animColor);
         ajaxAction(
             { ajax_action: 'update_status', id: id, status: status },
             data => {
+                clearRowLoading(id);
                 const badge = status === 'active'
                     ? `<span class="quick-badge qb-ok"><i class="ph-fill ph-check-circle"></i> ACTIVE</span>`
                     : `<span class="quick-badge qb-err"><i class="ph-fill ph-pause-circle"></i> SUSPEND</span>`;
@@ -420,9 +440,12 @@ function doAction(id, action, status, el) {
                     background: 'var(--card)', color: 'var(--text)'
                 });
             },
-            msg => Swal.fire({ icon:'error', title:'Gagal!', text: msg,
-                background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--err)'
-            })
+            msg => {
+                clearRowLoading(id);
+                Swal.fire({ icon:'error', title:'Gagal!', text: msg,
+                    background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--err)'
+                });
+            }
         );
     });
 }
@@ -440,18 +463,25 @@ function doDeleteOrder(id, domain, el) {
         background: 'var(--card)', color: 'var(--text)', reverseButtons: true,
     }).then(r => {
         if (!r.isConfirmed) return;
+        setRowLoading(id, 'Deleting', '#ef4444');
+        $(`#order-row-${id}`).css('opacity', '0.5');
         ajaxAction(
             { ajax_action: 'delete_order', id: id },
             data => {
+                clearRowLoading(id);
                 $(`#order-row-${id}`).fadeOut(400, function(){ $(this).remove(); });
                 Swal.fire({ icon:'success', title:'Terhapus!', text: data.msg,
                     timer: 2000, showConfirmButton: false,
                     background: 'var(--card)', color: 'var(--text)'
                 });
             },
-            msg => Swal.fire({ icon:'error', title:'Gagal!', text: msg,
-                background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--err)'
-            })
+            msg => {
+                clearRowLoading(id);
+                $(`#order-row-${id}`).css('opacity', '1');
+                Swal.fire({ icon:'error', title:'Gagal!', text: msg,
+                    background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--err)'
+                });
+            }
         );
     });
 }
