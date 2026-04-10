@@ -10,15 +10,37 @@ if (isset($_SESSION['user_id'])) { header("Location: /hosting"); exit(); }
 // Track traffic (anonymous)
 track_traffic($conn);
 
+// Check for google registration session
+$action = $_GET['params'][0] ?? null;
+$sesid  = $_GET['params'][1] ?? null;
+$g_data = null;
+$message_type = "";
+$message_text = "";
+
+if ($action === 'google' && !empty($sesid)) {
+    if (isset($_SESSION['google_reg'][$sesid])) {
+        $g_data = $_SESSION['google_reg'][$sesid];
+        if ($g_data['expires'] < time()) {
+            unset($_SESSION['google_reg'][$sesid]);
+            $g_data = null;
+            $message_type = 'error';
+            $message_text = 'Sesi pendaftaran Google sudah kedaluarsa. Silakan ulangi.';
+        } else {
+            $message_type = 'info';
+            $message_text = 'Lengkapi detail akun Anda untuk menyelesaikan pendaftaran.';
+        }
+    } else {
+        $message_type = 'error';
+        $message_text = 'Sesi pendaftaran Google tidak valid atau sudah kedaluarsa.';
+    }
+}
+
 // Generate captcha
 if (!isset($_POST['register'])) {
     $_SESSION['captcha_num1']   = rand(2, 12);
     $_SESSION['captcha_num2']   = rand(1, 9);
     $_SESSION['captcha_result'] = $_SESSION['captcha_num1'] + $_SESSION['captcha_num2'];
 }
-
-$message_type = "";
-$message_text = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     $nama_depan   = mysqli_real_escape_string($conn, trim($_POST['nama_depan'] ?? ''));
@@ -62,19 +84,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
             $message_type = "error";
             $message_text = "Email sudah terdaftar. Silakan login.";
         } else {
-            $otp        = sprintf("%06d", mt_rand(1, 999999));
-            $otp_expiry = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+            // Determine if Google SSO or standard email reg
+            $google_id  = null;
+            $avatar_url = null;
+            if ($g_data) {
+                $email      = mysqli_real_escape_string($conn, trim($g_data['email'])); // force original email
+                $google_id  = mysqli_real_escape_string($conn, $g_data['google_id']);
+                $avatar_url = mysqli_real_escape_string($conn, $g_data['avatar_url']);
+                $status     = 'active';
+                $otp        = null;
+                $otp_expiry = null;
+            } else {
+                $status     = 'pending';
+                $otp        = sprintf("%06d", mt_rand(1, 999999));
+                $otp_expiry = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+            }
+
             $ins = "INSERT INTO users (nama, nama_depan, nama_belakang, email, no_whatsapp, password, role, status,
-                        otp_code, otp_expiry, alamat, negara, provinsi, kota, kode_pos, reg_ip, kode_telepon)
-                    VALUES ('$nama','$nama_depan','$nama_belakang','$email','$whatsapp','$password','client','pending',
-                        '$otp','$otp_expiry','$alamat','$negara','$provinsi','$kota','$kode_pos','$reg_ip_e','$kode_tel')";
+                        otp_code, otp_expiry, alamat, negara, provinsi, kota, kode_pos, reg_ip, kode_telepon, google_id, avatar_url)
+                    VALUES ('$nama','$nama_depan','$nama_belakang','$email','$whatsapp','$password','client','$status',
+                        " . ($otp ? "'$otp'" : "NULL") . "," . ($otp_expiry ? "'$otp_expiry'" : "NULL") . ",'$alamat','$negara','$provinsi','$kota','$kode_pos','$reg_ip_e','$kode_tel'," . ($google_id ? "'$google_id'" : "NULL") . "," . ($avatar_url ? "'$avatar_url'" : "NULL") . ")";
+            
             if (mysqli_query($conn, $ins)) {
                 $user_id = mysqli_insert_id($conn);
-                sendEmailTemplate($email, $nama, 'register_otp', ['nama'=>$nama, 'otp'=>$otp]);
-                $_SESSION['otp_user_id'] = $user_id;
-                $otpsession = md5($user_id . time());
-                $_SESSION['otp_session'] = $otpsession;
-                $message_type = "success_register";
+                if ($g_data) {
+                    // Google user: Auto activate and login
+                    unset($_SESSION['google_reg'][$sesid]);
+                    $_SESSION['user_id']      = $user_id;
+                    $_SESSION['user_nama']    = $nama_depan;
+                    $_SESSION['auth_success'] = 'Pendaftaran berhasil! Akun Anda aktif.';
+                    header("Location: /hosting");
+                    exit;
+                } else {
+                    // Standard user: Requires OTP
+                    sendEmailTemplate($email, $nama, 'register_otp', ['nama'=>$nama, 'otp'=>$otp]);
+                    $_SESSION['otp_user_id'] = $user_id;
+                    $otpsession = md5($user_id . time());
+                    $_SESSION['otp_session'] = $otpsession;
+                    $message_type = "success_register";
+                }
             } else {
                 $message_type = "error";
                 $message_text = "Gagal mendaftar: " . mysqli_error($conn);
@@ -376,8 +424,13 @@ textarea.form-input { height: 80px; padding: 10px 14px; resize: vertical; }
     <div style="background:#d3f9d8;border:1px solid #8ce99a;border-radius:8px;padding:10px 14px;font-size:13px;color:#2b8a3e;display:flex;align-items:center;gap:8px;margin-bottom:16px;">
         <i class="ph-fill ph-check-circle" style="font-size:18px;"></i><?= htmlspecialchars($message_text) ?>
     </div>
+    <?php elseif($message_type === 'info'): ?>
+    <div style="background:#e7f5ff;border:1px solid #74c0fc;border-radius:8px;padding:10px 14px;font-size:13px;color:#1864ab;display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <i class="ph-fill ph-info" style="font-size:18px;"></i><?= htmlspecialchars($message_text) ?>
+    </div>
     <?php endif; ?>
 
+    <?php if(!$g_data): ?>
     <!-- Google SSO Button -->
     <div style="margin-bottom: 20px;">
         <?php if($_sso_enabled_r): ?>
@@ -397,6 +450,7 @@ textarea.form-input { height: 80px; padding: 10px 14px; resize: vertical; }
             <div style="flex:1;height:1px;background:var(--border);"></div>
         </div>
     </div>
+    <?php endif; ?>
 
     <form method="POST" id="regForm">
 
@@ -408,7 +462,7 @@ textarea.form-input { height: 80px; padding: 10px 14px; resize: vertical; }
                 <div class="field-wrap">
                     <i class="ph ph-user field-icon"></i>
                     <input type="text" name="nama_depan" class="form-input" placeholder="John" required
-                           value="<?= htmlspecialchars($_POST['nama_depan'] ?? '') ?>">
+                           value="<?= htmlspecialchars($_POST['nama_depan'] ?? ($g_data ? $g_data['nama'] : '')) ?>">
                 </div>
             </div>
             <div class="col-md-6">
@@ -424,7 +478,8 @@ textarea.form-input { height: 80px; padding: 10px 14px; resize: vertical; }
                 <div class="field-wrap">
                     <i class="ph ph-envelope field-icon"></i>
                     <input type="email" name="email" class="form-input" placeholder="johndoe@example.com" required
-                           value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
+                           <?= $g_data ? 'readonly style="background:#e9ecef;cursor:not-allowed;"' : '' ?>
+                           value="<?= htmlspecialchars($_POST['email'] ?? ($g_data ? $g_data['email'] : '')) ?>">
                 </div>
             </div>
             <div class="col-md-6">

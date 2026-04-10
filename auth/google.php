@@ -124,29 +124,24 @@ if (mysqli_num_rows($check) > 0) {
     $_SESSION['auth_success'] = 'Selamat datang kembali, ' . htmlspecialchars($user['nama']) . '!';
 
 } else {
-    // New user — auto-register
+    // New user — redirect to registration completion page
     if (empty($g_email)) {
         $_SESSION['auth_error'] = 'Akun Google tidak memiliki email yang dapat digunakan.';
         header('Location: ' . base_url('auth/login'));
         exit;
     }
 
-    mysqli_query($conn, "INSERT INTO users
-        (nama, email, google_id, avatar_url, role, status, reg_ip, last_login, last_ip)
-        VALUES
-        ('$g_name', '$g_email', '$google_id', '$g_picture', 'client', 'active', '$reg_ip', NOW(), '$reg_ip')");
+    $sesid = bin2hex(random_bytes(16));
+    $_SESSION['google_reg'][$sesid] = [
+        'email'      => $g_email,
+        'nama'       => $g_name,
+        'google_id'  => $google_id,
+        'avatar_url' => $g_picture,
+        'expires'    => time() + 3600
+    ];
 
-    $new_id = mysqli_insert_id($conn);
-
-    if (!$new_id) {
-        $_SESSION['auth_error'] = 'Gagal membuat akun baru. Error: ' . mysqli_error($conn);
-        header('Location: ' . base_url('auth/login'));
-        exit;
-    }
-
-    $_SESSION['user_id']   = $new_id;
-    $_SESSION['user_nama'] = $profile['name'] ?? $g_email;
-    $_SESSION['auth_success'] = 'Akun berhasil dibuat! Selamat datang, ' . htmlspecialchars($profile['name']) . '.';
+    header('Location: ' . base_url('auth/register/google/' . $sesid));
+    exit;
 }
 
 // Redirect to intended destination or dashboard
