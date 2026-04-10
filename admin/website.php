@@ -11,6 +11,29 @@ if (!isset($_SESSION['admin_id'])) {
     exit;
 }
 
+    // AJAX Test SMTP
+if (isset($_POST['ajax_test_smtp'])) {
+    header('Content-Type: application/json');
+    require_once __DIR__ . '/../core/mailer.php';
+    $test_email = mysqli_real_escape_string($conn, trim($_POST['test_email'] ?? ''));
+    if (empty($test_email) || !filter_var($test_email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Email yang Anda masukkan tidak valid.']);
+        exit;
+    }
+    $GLOBALS['is_smtp_test'] = true;
+    $cek_tpl = mysqli_query($conn, "SELECT id FROM email_templates WHERE name='test_connection'");
+    if(mysqli_num_rows($cek_tpl) == 0) {
+        mysqli_query($conn, "INSERT INTO email_templates (name, subject, body, variables) VALUES ('test_connection', 'Test Koneksi SMTP Berhasil', '<h2>Halo :nama:!</h2><p>Jika Anda membaca email ini, maka konfigurasi SMTP Anda beroperasi tanpa kendala.</p>', ':nama:')");
+    }
+    $res = sendEmailTemplate($test_email, $test_email, 'test_connection', ['nama' => 'Konfigurasi Anda']);
+    if ($res === true) {
+        echo json_encode(['success' => true, 'message' => "Email percobaan berhasil dikirim ke $test_email! Jika Anda tidak menerimanya, periksa folder Spam."]);
+    } else {
+        echo json_encode(['success' => false, 'message' => "Gagal mengirim pesan percobaan. Error: " . (is_string($res) ? $res : 'Unknown error')]);
+    }
+    exit;
+}
+
     // Logika Update Settings
 if (isset($_POST['update_settings'])) {
     $site_name = mysqli_real_escape_string($conn, $_POST['site_name']);
@@ -251,6 +274,16 @@ include __DIR__ . '/library/header.php';
                                 <label class="fl">Nama Pengirim (Sender Name)</label>
                                 <input type="text" name="smtp_from_name" class="fc w-100 form-control-sm" value="<?php echo htmlspecialchars($set['smtp_from_name']); ?>">
                             </div>
+                            
+                            <!-- SMTP Tester Inline -->
+                            <div class="p-3 mt-4 rounded border" style="background:rgba(255,255,255,0.02);">
+                                <h6 class="fw-bold mb-2"><i class="ph-fill ph-paper-plane-tilt me-1 text-primary"></i> Uji Koneksi SMTP</h6>
+                                <p class="text-secondary" style="font-size:12.5px;">Pastikan Anda <b>menyimpan</b> pengaturan SMTP terlebih dahulu di bagian bawah layar sebelum melakukan pengujian.</p>
+                                <div class="d-flex gap-2">
+                                    <input type="email" id="testEmail" class="form-control form-control-sm fc w-50" placeholder="Masukkan email penerima test" style="max-width:250px;">
+                                    <button type="button" class="btn btn-sm btn-outline-primary fw-medium px-3" onclick="testSMTP(this)">Kirim Test</button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- TAB GOOGLE AUTH -->
@@ -385,6 +418,40 @@ include __DIR__ . '/library/header.php';
         });
         <?php endif; ?>
     <?php endif; ?>
+
+    // Fungsi Test SMTP AJAX
+    function testSMTP(btn) {
+        const email = document.getElementById('testEmail').value;
+        if(!email) {
+            Swal.fire({icon:'warning', title:'Oops!', text:'Masukkan email untuk mendemonstrasikan pengiriman.', background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--accent)'});
+            return;
+        }
+
+        const originText = btn.innerHTML;
+        btn.innerHTML = '<i class="ph ph-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
+
+        const fd = new FormData();
+        fd.append('ajax_test_smtp', '1');
+        fd.append('test_email', email);
+
+        fetch(window.location.href, { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+            if(data.success) {
+                Swal.fire({ icon:'success', title:'Terkirim!', text:data.message, background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--ok)'});
+            } else {
+                Swal.fire({ icon:'error', title:'Gagal SMTP!', text:data.message, background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--warn)'});
+            }
+        })
+        .catch(err => {
+            alert("Error: " + err);
+        })
+        .finally(() => {
+            btn.innerHTML = originText;
+            btn.disabled = false;
+        });
+    }
 </script>
 
 <?php include __DIR__ . '/library/footer.php'; ?>
