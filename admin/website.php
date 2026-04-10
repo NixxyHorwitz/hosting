@@ -17,6 +17,7 @@ if (isset($_POST['ajax_test_smtp'])) {
     require_once __DIR__ . '/../core/mailer.php';
     $test_email = mysqli_real_escape_string($conn, trim($_POST['test_email'] ?? ''));
     if (empty($test_email) || !filter_var($test_email, FILTER_VALIDATE_EMAIL)) {
+        ob_end_clean();
         echo json_encode(['success' => false, 'message' => 'Email yang Anda masukkan tidak valid.']);
         exit;
     }
@@ -27,8 +28,10 @@ if (isset($_POST['ajax_test_smtp'])) {
     }
     $res = sendEmailTemplate($test_email, $test_email, 'test_connection', ['nama' => 'Konfigurasi Anda']);
     if ($res === true) {
+        ob_end_clean();
         echo json_encode(['success' => true, 'message' => "Email percobaan berhasil dikirim ke $test_email! Jika Anda tidak menerimanya, periksa folder Spam."]);
     } else {
+        ob_end_clean();
         echo json_encode(['success' => false, 'message' => "Gagal mengirim pesan percobaan. Error: " . (is_string($res) ? $res : 'Unknown error')]);
     }
     exit;
