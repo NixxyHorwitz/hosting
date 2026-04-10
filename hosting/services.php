@@ -25,52 +25,48 @@ include __DIR__ . '/../library/header.php';
     </div>
     
     <div class="card-body p-4" style="background: #fdfdfd;">
-        <div class="row g-4 justify-content-center">
+        <div class="row g-3 justify-content-center">
         <?php foreach ($products as $p):
-            $icon_map = [
-                0 => 'bi-window-stack',
-                1 => 'bi-window-stack',
-                2 => 'bi-wordpress',
-                3 => 'bi-cloud-check',
-            ];
+            $icon_map = [0 => 'bi-server', 1 => 'bi-hdd-network', 2 => 'bi-cloud-check', 3 => 'bi-rocket-takeoff']; // Updated modern icons
             $icons = array_values($icon_map);
             $icon_idx = array_search($p['id'], array_column($products,'id'));
-            $icon = $icons[min($icon_idx, count($icons)-1)] ?? 'bi-hdd-stack';
+            $icon = $icons[min($icon_idx, count($icons)-1)] ?? 'bi-server';
         ?>
-        <div class="col-lg-4 col-md-6">
-            <div class="product-card card h-100 p-4 border shadow-sm position-relative text-center hover-card" style="border-radius: 4px; border-color: #eaedf1 !important;">
-
-                <div class="mb-2">
-                    <i class="bi <?= $icon ?>" style="font-size: 3.5rem; color: #48cae4; font-weight: 300;"></i>
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+            <div class="card h-100 hover-card d-flex flex-column" style="border: 1px solid #eaedf1; border-radius: 8px; overflow: hidden; background: #fff;">
+                <div class="p-3 text-center border-bottom position-relative" style="background: linear-gradient(180deg, #f8fbfd 0%, #ffffff 100%);">
+                    <i class="bi <?= $icon ?>" style="font-size: 2.2rem; color: #007bff;"></i>
+                    <h6 class="fw-bold text-dark mt-2 mb-1" style="font-size:15px; letter-spacing: -0.3px;"><?= htmlspecialchars($p['nama_paket']) ?></h6>
+                    <div class="text-primary fw-bold" style="font-size:18px;">Rp <?= number_format($p['harga_per_bulan'], 0, ',', '.') ?> <span class="text-muted fw-normal" style="font-size:11px;">/bln</span></div>
+                </div>
+                
+                <div class="p-3 flex-grow-1 text-secondary" style="font-size: 12.5px; line-height: 1.6;">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2" style="font-size:14px;"></i> 
+                        <span><strong class="text-dark"><?= htmlspecialchars($p['disk_limit'] ?? '-') ?></strong> Storage</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2" style="font-size:14px;"></i> 
+                        <span><strong class="text-dark"><?= htmlspecialchars($p['bandwidth_limit'] ?? '-') ?></strong> Bandwidth</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2" style="font-size:14px;"></i> 
+                        <span><strong class="text-dark"><?= htmlspecialchars($p['whm_package_name'] ?? 'Dasar') ?></strong> Package</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill text-success me-2" style="font-size:14px;"></i> 
+                        <span>Gratis SSL & Backup</span>
+                    </div>
                 </div>
 
-                <div class="d-flex justify-content-center gap-2 mb-3">
-                    <a href="<?= base_url('hosting/order/'.$p['id']) ?>" class="btn btn-sm text-white px-3 d-flex align-items-center" style="background: #20c997; border-radius: 20px; font-size: 0.70rem; font-weight: 600;">
-                        <i class="bi bi-cart me-1"></i> Pesan
+                <div class="p-3 pt-0 mt-auto">
+                    <a href="<?= base_url('hosting/order/'.$p['id']) ?>" class="btn btn-primary w-100 fw-bold shadow-sm" style="font-size: 13px; border-radius: 6px; transition: all 0.2s;">
+                        Pilih Paket <i class="bi bi-arrow-right ms-1"></i>
                     </a>
-                </div>
-
-                <h6 class="fw-bold text-secondary mb-1" style="font-size: 1rem;"><?= htmlspecialchars($p['nama_paket']) ?></h6>
-                <div class="text-muted small mb-4">Mulai <span class="fw-bold text-dark">Rp <?= number_format($p['harga_per_bulan'], 0, ',', '.') ?></span> / bln</div>
-
-                <div class="features-text text-start mt-auto text-secondary" style="font-size: 0.75rem; border-top: 1px solid #eaedf1; padding-top: 15px;">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span><i class="bi bi-database me-1 text-muted"></i> Storage:</span>
-                        <span class="fw-bold text-dark"><?= htmlspecialchars($p['disk_limit'] ?? '-') ?></span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span><i class="bi bi-activity me-1 text-muted"></i> Bandwidth:</span>
-                        <span class="fw-bold text-dark"><?= htmlspecialchars($p['bandwidth_limit'] ?? '-') ?></span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span><i class="bi bi-shield-check me-1 text-muted"></i> Fitur:</span>
-                        <span class="fw-bold text-dark">SSL & Backup</span>
-                    </div>
                 </div>
             </div>
         </div>
         <?php endforeach; ?>
-
         </div>
     </div>
 </div>
