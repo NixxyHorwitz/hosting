@@ -1,0 +1,3 @@
+[07-Apr-2026 11:07:35 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/cronjob/payment.php on line 7
+[07-Apr-2026 11:07:35 UTC] PHP Notice:  Trying to access array offset on value of type null in /home/user115/testing.hbklegacy.icu/cronjob/payment.php on line 9
+[07-Apr-2026 11:07:35 UTC] PHP Notice:  Trying to access array offset on value of type null in /home/user115/testing.hbklegacy.icu/cronjob/payment.php on line 10

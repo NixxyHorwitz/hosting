@@ -1,0 +1,11 @@
+RewriteOptions inherit
+RewriteEngine On
+RewriteBase /
+
+# ── CDN / Media: /cms/{filename} → /uploads/cms/{filename} ─────
+# URL publik tersembunyi, path asli tidak terekspos ke user
+RewriteRule ^cms/(.+)$ uploads/cms/$1 [L,NC]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?route=$1 [QSA,L]

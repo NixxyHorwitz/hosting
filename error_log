@@ -1,0 +1,130 @@
+[07-Apr-2026 09:18:16 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 09:18:16 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 09:18:16 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 09:18:16 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:18:16 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:18:16 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:18:29 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 09:18:29 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 09:18:29 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 09:18:29 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:18:29 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:18:29 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:24:33 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 09:24:33 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 09:24:33 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 09:24:33 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:24:33 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:24:33 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:24:37 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 09:24:37 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 09:24:37 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 09:24:37 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 7
+[07-Apr-2026 09:24:37 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 8
+[07-Apr-2026 09:24:39 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 09:24:39 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 09:24:39 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 09:24:39 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 7
+[07-Apr-2026 09:24:39 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 8
+[07-Apr-2026 09:24:41 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/dashboard.php on line 3
+[07-Apr-2026 09:44:56 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 09:44:56 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 09:44:56 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 09:44:56 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:44:56 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:44:56 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 09:45:15 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 09:45:15 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 09:45:15 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 09:45:15 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 7
+[07-Apr-2026 09:45:15 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 8
+[07-Apr-2026 09:46:01 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 09:46:01 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 09:46:01 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 09:46:01 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 7
+[07-Apr-2026 09:46:01 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 8
+[07-Apr-2026 09:46:33 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 09:46:33 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 09:46:33 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 09:46:33 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 7
+[07-Apr-2026 09:46:33 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 8
+[07-Apr-2026 09:46:36 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/dashboard.php on line 3
+[07-Apr-2026 10:06:14 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 10:06:14 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 10:06:14 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 10:06:14 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:06:14 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:06:14 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:06:14 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/dashboard.php on line 3
+[07-Apr-2026 10:06:16 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 10:06:16 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 10:06:16 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 10:06:16 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:06:16 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:06:16 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:07:02 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 10:07:02 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 10:07:02 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 10:07:02 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 7
+[07-Apr-2026 10:07:02 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 8
+[07-Apr-2026 10:07:03 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 10:07:03 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 10:07:03 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 10:07:03 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 7
+[07-Apr-2026 10:07:03 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/auth.php on line 8
+[07-Apr-2026 10:07:05 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/dashboard.php on line 3
+[07-Apr-2026 10:12:40 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 10:12:40 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/invoice.php on line 290
+[07-Apr-2026 10:24:24 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 10:24:24 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 10:24:24 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 10:24:24 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:24:24 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:24:24 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:24:25 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/dashboard.php on line 3
+[07-Apr-2026 10:24:43 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 10:27:17 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 10:30:10 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 10:30:10 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/invoice.php on line 290
+[07-Apr-2026 10:32:52 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 10:32:52 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 10:32:52 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 10:32:52 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:32:52 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:32:52 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:32:52 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/dashboard.php on line 3
+[07-Apr-2026 10:34:34 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 10:34:34 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 10:34:34 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 10:34:34 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:34:34 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:34:34 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:34:34 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/dashboard.php on line 3
+[07-Apr-2026 10:34:46 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 10:34:46 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/invoice.php on line 290
+[07-Apr-2026 10:37:41 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 10:37:41 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 10:37:41 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 10:37:41 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:37:41 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:37:41 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:37:41 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/dashboard.php on line 3
+[07-Apr-2026 10:54:01 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 6
+[07-Apr-2026 10:54:01 UTC] PHP Warning:  ini_set(): A session is active. You cannot change the session module's ini settings at this time in /home/user115/testing.hbklegacy.icu/config/database.php on line 7
+[07-Apr-2026 10:54:01 UTC] PHP Warning:  session_set_cookie_params(): Cannot change session cookie parameters when session is active in /home/user115/testing.hbklegacy.icu/config/database.php on line 8
+[07-Apr-2026 10:54:01 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:54:01 UTC] PHP Warning:  include(core/api_helper.php): failed to open stream: No such file or directory in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:54:01 UTC] PHP Warning:  include(): Failed opening 'core/api_helper.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/user115/testing.hbklegacy.icu/index.php on line 6
+[07-Apr-2026 10:54:01 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/dashboard.php on line 3
+[07-Apr-2026 10:54:13 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 10:54:13 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/invoice.php on line 290
+[07-Apr-2026 10:57:51 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 10:57:51 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/invoice.php on line 177
+[07-Apr-2026 10:59:50 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 10:59:50 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/invoice.php on line 185
+[07-Apr-2026 11:00:06 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 11:00:06 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/invoice.php on line 185
+[07-Apr-2026 11:02:32 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 11:02:32 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/invoice.php on line 183
+[07-Apr-2026 11:03:35 UTC] PHP Notice:  session_start(): A session had already been started - ignoring in /home/user115/testing.hbklegacy.icu/invoice.php on line 3
+[07-Apr-2026 11:03:35 UTC] PHP Warning:  mysqli_fetch_assoc() expects parameter 1 to be mysqli_result, bool given in /home/user115/testing.hbklegacy.icu/invoice.php on line 177
