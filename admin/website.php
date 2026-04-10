@@ -24,7 +24,7 @@ if (isset($_POST['ajax_test_smtp'])) {
     $GLOBALS['is_smtp_test'] = true;
     $cek_tpl = mysqli_query($conn, "SELECT id FROM email_templates WHERE name='test_connection'");
     if(mysqli_num_rows($cek_tpl) == 0) {
-        mysqli_query($conn, "INSERT INTO email_templates (name, subject, body, variables) VALUES ('test_connection', 'Test Koneksi SMTP Berhasil', '<h2>Halo :nama:!</h2><p>Jika Anda membaca email ini, maka konfigurasi SMTP Anda beroperasi tanpa kendala.</p>', ':nama:')");
+        mysqli_query($conn, "INSERT INTO email_templates (name, description, subject, body) VALUES ('test_connection', 'Template untuk memastikan koneksi SMTP', 'Test Koneksi SMTP Berhasil', '<h2>Halo :nama:!</h2><p>Jika Anda membaca email ini, maka konfigurasi SMTP Anda beroperasi tanpa kendala.</p>')");
     }
     $res = sendEmailTemplate($test_email, $test_email, 'test_connection', ['nama' => 'Konfigurasi Anda']);
     if ($res === true) {
