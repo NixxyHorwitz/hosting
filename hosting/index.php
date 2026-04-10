@@ -43,7 +43,7 @@ $q_ann = mysqli_query($conn, "SELECT * FROM announcements WHERE is_active=1 ORDE
 $announcements = mysqli_fetch_all($q_ann, MYSQLI_ASSOC);
 
 // ─── Invoice Terdekat Jatuh Tempo ─────────────────────────────
-$q_invoices = mysqli_query($conn, "SELECT * FROM invoices WHERE user_id='$user_id' AND status='unpaid' ORDER BY due_date ASC LIMIT 3");
+$q_invoices = mysqli_query($conn, "SELECT * FROM invoices WHERE user_id='$user_id' AND status='unpaid' ORDER BY date_due ASC LIMIT 3");
 
 $page_title = "Dashboard";
 include __DIR__ . '/../library/header.php';
@@ -437,10 +437,10 @@ $ann_colors = ['info' => '#3b82f6', 'warning' => '#f59e0b', 'promo' => '#10b981'
                 <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="font-size:12px;border-color:#fde8e8!important;">
                     <div>
                         <div class="fw-medium">#<?= $inv['id'] ?></div>
-                        <div class="text-muted" style="font-size:10px;">Jatuh tempo: <?= !empty($inv['due_date']) ? date('d M Y', strtotime($inv['due_date'])) : '—' ?></div>
+                        <div class="text-muted" style="font-size:10px;">Jatuh tempo: <?= !empty($inv['date_due']) ? date('d M Y', strtotime($inv['date_due'])) : '—' ?></div>
                     </div>
                     <div class="text-end">
-                        <div class="fw-bold text-danger">Rp <?= number_format($inv['amount'] ?? 0, 0, ',', '.') ?></div>
+                        <div class="fw-bold text-danger">Rp <?= number_format($inv['total_tagihan'] ?? 0, 0, ',', '.') ?></div>
                         <a href="<?= base_url('hosting/invoice/'.$inv['id']) ?>" class="btn btn-sm" style="font-size:10px;background:#ef4444;color:#fff;border-radius:12px;padding:2px 10px;border:none;margin-top:2px;">Bayar</a>
                     </div>
                 </div>
