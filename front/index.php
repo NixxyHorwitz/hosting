@@ -163,25 +163,26 @@ function renderLandingIcon(string $icon, string $extraClass = ''): string {
         .trust-item span { font-weight: 700; font-size: 0.75rem; line-height: 1.3; max-width: 90px; }
 
         /* ─── PRICING CARDS ─── */
-        .pricing-section { padding: 80px 0; background: white; }
-        .pricing-title { text-align: center; font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 900; color: #2d3436; margin-bottom: 50px; }
-        .pricing-card { border: 2px solid #edf2f7; border-radius: 16px; padding: 32px 28px; height: 100%; transition: all 0.3s; background: white; }
-        .pricing-card:hover { border-color: var(--cp); box-shadow: 0 12px 35px rgba(0,0,0,0.1); transform: translateY(-4px); }
+        .pricing-section { padding: 70px 0; background: white; }
+        .pricing-title { text-align: center; font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 900; color: #2d3436; margin-bottom: 44px; }
+        .pricing-card { border: 2px solid #edf2f7; border-radius: 14px; padding: 24px 20px; height: 100%; transition: all 0.3s; background: white; display: flex; flex-direction: column; }
+        .pricing-card:hover { border-color: var(--cp); box-shadow: 0 10px 30px rgba(0,0,0,0.1); transform: translateY(-4px); }
         .pricing-card.featured { background: linear-gradient(145deg, var(--cp), var(--cs)); border-color: transparent; color: white; }
-        .pricing-card.featured .text-muted, .pricing-card.featured .feature-list-item { color: rgba(255,255,255,0.8) !important; }
-        .pricing-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: rgba(255,255,255,0.2); color: white; display: inline-block; margin-bottom: 12px; }
-        .pricing-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
-        .pricing-price { font-size: 2.2rem; font-weight: 900; margin: 16px 0 4px; letter-spacing: -1px; }
-        .pricing-period { font-size: 0.85rem; font-weight: 500; opacity: 0.7; }
-        .pricing-divider { border-color: rgba(255,255,255,0.2); margin: 20px 0; }
+        .pricing-card.featured .pricing-sub, .pricing-card.featured .feature-list-item { color: rgba(255,255,255,0.8) !important; }
+        .pricing-badge { font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: rgba(255,255,255,0.25); color: white; display: inline-block; margin-bottom: 10px; }
+        .pricing-name { font-size: 1.05rem; font-weight: 800; margin-bottom: 2px; }
+        .pricing-sub { font-size: 0.75rem; color: #adb5bd; margin-bottom: 4px; }
+        .pricing-price { font-size: 1.75rem; font-weight: 900; margin: 12px 0 2px; letter-spacing: -0.5px; line-height: 1; }
+        .pricing-period { font-size: 0.78rem; font-weight: 500; opacity: 0.65; }
+        .pricing-divider { border-color: rgba(255,255,255,0.2); margin: 16px 0; }
         .pricing-divider.dark { border-color: #edf2f7; }
-        .feature-list-item { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.85rem; color: #636e72; }
-        .feature-list-item i { color: #10b981; flex-shrink: 0; }
+        .feature-list-item { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 8px; font-size: 0.78rem; color: #636e72; line-height: 1.4; }
+        .feature-list-item i { color: #10b981; flex-shrink: 0; margin-top: 2px; }
         .pricing-card.featured .feature-list-item i { color: rgba(255,255,255,0.9); }
-        .btn-pricing { display: block; text-align: center; padding: 13px; border-radius: 10px; font-weight: 800; font-size: 0.95rem; text-decoration: none; transition: 0.2s; margin-top: 24px; }
-        .btn-pricing-outline { border: 2px solid var(--cp); color: var(--cp); background: none; }
+        .btn-pricing { display: block; text-align: center; padding: 10px; border-radius: 9px; font-weight: 800; font-size: 0.85rem; text-decoration: none; transition: 0.2s; margin-top: auto; padding-top: 12px; }
+        .btn-pricing-outline { border: 2px solid var(--cp); color: var(--cp); background: none; margin-top: 16px; }
         .btn-pricing-outline:hover { background: var(--cp); color: white; }
-        .btn-pricing-solid { background: white; color: var(--cp); }
+        .btn-pricing-solid { background: white; color: var(--cp); margin-top: 16px; }
         .btn-pricing-solid:hover { background: rgba(255,255,255,0.9); }
 
         /* ─── FOOTER ─── */
@@ -287,7 +288,7 @@ function renderLandingIcon(string $icon, string $extraClass = ''): string {
 <section class="pricing-section" id="hosting">
     <div class="container">
         <h2 class="pricing-title">Pilih Paket <span style="color: var(--cp);">Cloud Hosting</span></h2>
-        <div class="row g-4 justify-content-center">
+        <div class="row g-3 justify-content-center">
         <?php
         $plans_q = mysqli_query($conn, "SELECT * FROM hosting_plans ORDER BY harga_per_bulan ASC");
         $plan_idx = 0;
@@ -295,13 +296,13 @@ function renderLandingIcon(string $icon, string $extraClass = ''): string {
             $plan_idx++;
             $is_featured = ($plan_idx == 2);
         ?>
-            <div class="col-md-4">
+            <div class="col-xl-3 col-md-6 col-12">
                 <div class="pricing-card <?= $is_featured ? 'featured' : '' ?>">
                     <?php if($is_featured): ?>
                     <div class="pricing-badge">⭐ Best Seller</div>
                     <?php endif; ?>
                     <div class="pricing-name"><?= htmlspecialchars($h['nama_paket']) ?></div>
-                    <div class="text-muted" style="font-size: 0.82rem; <?= $is_featured ? 'color: rgba(255,255,255,0.7) !important;' : '' ?>">Cocok untuk startup & bisnis</div>
+                    <div class="pricing-sub">Cocok untuk startup & bisnis</div>
                     <div class="pricing-price">Rp <?= number_format($h['harga_per_bulan'],0,',','.') ?></div>
                     <div class="pricing-period">/bulan</div>
                     <hr class="pricing-divider <?= !$is_featured ? 'dark' : '' ?>">
