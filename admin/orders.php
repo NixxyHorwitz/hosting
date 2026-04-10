@@ -288,14 +288,6 @@ include __DIR__ . '/library/header.php';
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end p-1" style="background:var(--surface);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.5);font-size:12px;min-width:200px;">
                                     
-                                    <?php /* ── Login sebagai User ── */ ?>
-                                    <li>
-                                        <a class="dropdown-item rounded py-1 mb-1" href="/admin/login_as_user.php?user_id=<?= $row['user_id'] ?>" target="_blank" style="color:var(--accent);">
-                                            <i class="ph-fill ph-user-switch me-2"></i> Login sebagai User
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider my-1" style="border-color:var(--border);"></li>
-
                                     <?php /* ── Create WHM & Aktifkan (hanya jika belum ada username) ── */ ?>
                                     <?php if(empty($row['username'])): ?>
                                     <li>
