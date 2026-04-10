@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 <div class="brand-logo"><i class="ph-fill ph-cloud-lightning"></i></div>
                 <?php endif; ?>
                 <h4 class="fw-bold text-white mb-1" style="font-size: 20px;"><?= $_admin_site_name ?> <span style="color:#3b82f6;font-weight:400;font-size:13px;">Admin</span></h4>
-                <p class="text-muted" style="font-size: 13px;">Secure Control Panel Access</p>
+                <p style="font-size: 13px; color: #7a90b0;">Secure Control Panel Access</p>
             </div>
             
             <div class="card auth-card">
