@@ -2,7 +2,90 @@
 require_once __DIR__ . '/library/admin_session.php';
 if(!defined('NS1')) include __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/WHMClient.php';
+require_once __DIR__ . '/../core/mailer.php';
 
+// ─── HANDLER: CREATE WHM & AKTIFKAN ───────────────────────────────────────────
+if (isset($_GET['create_whm']) && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    $ord_q = mysqli_query($conn, "SELECT o.*, u.email, u.nama FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = '$id' LIMIT 1");
+    $order = mysqli_fetch_assoc($ord_q);
+    if (!$order) { header("Location: orders?res=error&msg=" . urlencode("Order tidak ditemukan.")); exit(); }
+    if (!empty($order['username'])) { header("Location: orders?res=error&msg=" . urlencode("Akun WHM sudah pernah dibuat untuk order ini.")); exit(); }
+
+    $whm_id  = (int)$order['whm_id'];
+    $whmQ    = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id' LIMIT 1");
+    $whm_srv = mysqli_fetch_assoc($whmQ);
+    if (!$whm_srv) { header("Location: orders?res=error&msg=" . urlencode("Server WHM tidak ditemukan.")); exit(); }
+
+    $whm      = new WHMClient($whm_srv['whm_host'], $whm_srv['whm_username'], $whm_srv['whm_token']);
+    $username = 'client' . rand(100, 999);
+    $password = bin2hex(random_bytes(8)) . rand(10, 99) . '!';
+    $email    = $order['email'];
+    $domain   = $order['domain'];
+    $package  = $order['whm_package_name'];
+
+    try {
+        // Simpan dulu ke DB, set active
+        $stmt = $conn->prepare("UPDATE orders SET status='active', username=?, password=? WHERE id=?");
+        $stmt->bind_param("ssi", $username, $password, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Buat akun cPanel di WHM
+        $whm->createAccount([
+            'username'     => $username,
+            'domain'       => $domain,
+            'password'     => $password,
+            'contactemail' => $email,
+            'plan'         => $package
+        ]);
+
+        // Kirim email notifikasi order
+        sendEmailTemplate($email, $order['nama'], 'order_hosting', [
+            'nama'     => $order['nama'],
+            'domain'   => $domain,
+            'username' => $username,
+            'password' => $password,
+        ]);
+
+        header("Location: orders?res=success&msg=" . urlencode("WHM berhasil dibuat! User: $username, Domain: $domain. Email terkirim."));
+    } catch (Exception $e) {
+        // Rollback ke pending jika gagal
+        mysqli_query($conn, "UPDATE orders SET status='pending', username=NULL, password=NULL WHERE id='$id'");
+        header("Location: orders?res=error&msg=" . urlencode("Gagal buat WHM: " . $e->getMessage()));
+    }
+    exit();
+}
+
+// ─── HANDLER: DELETE ORDER ────────────────────────────────────────────────────
+if (isset($_GET['delete_order']) && isset($_GET['id'])) {
+    $id = (int)$_GET['id'];
+    $ord_q = mysqli_query($conn, "SELECT o.username, o.whm_id FROM orders o WHERE o.id = '$id' LIMIT 1");
+    $order = mysqli_fetch_assoc($ord_q);
+    if (!$order) { header("Location: orders?res=error&msg=" . urlencode("Order tidak ditemukan.")); exit(); }
+
+    // Coba hapus akun cPanel jika ada
+    if (!empty($order['username'])) {
+        $whm_id = (int)$order['whm_id'];
+        $whmQ   = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id' LIMIT 1");
+        $whmSrv = mysqli_fetch_assoc($whmQ);
+        if ($whmSrv) {
+            try {
+                $whm = new WHMClient($whmSrv['whm_host'], $whmSrv['whm_username'], $whmSrv['whm_token']);
+                $whm->terminateAccount($order['username']);
+            } catch (Exception $e) {
+                // Log, tapi tetap hapus dari DB
+                error_log('WHM terminate error (order ' . $id . '): ' . $e->getMessage());
+            }
+        }
+    }
+
+    mysqli_query($conn, "DELETE FROM orders WHERE id = '$id'");
+    header("Location: orders?res=success&msg=" . urlencode("Order #$id berhasil dihapus."));
+    exit();
+}
+
+// ─── HANDLER: UPDATE STATUS (SUSPEND / AKTIFKAN) ─────────────────────────────
 if (isset($_GET['update_status']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($conn, $_GET['id']);
     $new_status = mysqli_real_escape_string($conn, $_GET['update_status']);
@@ -14,16 +97,15 @@ if (isset($_GET['update_status']) && isset($_GET['id'])) {
     if(!$order_data) { header("Location: orders?res=error&msg=" . urlencode("Pesanan tidak ditemukan.")); exit(); }
     
     $cp_user = $order_data['username'];
-    $whm_id = (int)$order_data['whm_id'];
+    $whm_id  = (int)$order_data['whm_id'];
     $u_email = $order_data['email'];
-    $u_nama = $order_data['nama'];
-    $domain = $order_data['domain'];
+    $u_nama  = $order_data['nama'];
+    $domain  = $order_data['domain'];
 
-    $whmQuery = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id'");
+    $whmQuery  = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id'");
     $whm_server = mysqli_fetch_assoc($whmQuery);
-    if(!$whm_server) { header("Location: orders?res=error&msg=" . urlencode("Database Node Server WHM tidak ditemukan.")); exit(); }
+    if(!$whm_server) { header("Location: orders?res=error&msg=" . urlencode("Server WHM tidak ditemukan.")); exit(); }
     
-    require_once __DIR__ . '/../core/mailer.php';
     $whm = new WHMClient($whm_server['whm_host'], $whm_server['whm_username'], $whm_server['whm_token']);
     
     try {
@@ -41,9 +123,8 @@ if (isset($_GET['update_status']) && isset($_GET['id'])) {
         if ($mail_result === true) {
             header("Location: orders?res=success&msg=" . urlencode("Status $cp_user diubah ke $new_status. Email notifikasi terkirim."));
         } else {
-            // WHM berhasil, tapi email gagal — laporkan ke admin
-            $mail_err = is_string($mail_result) ? $mail_result : 'Template tidak ditemukan / SMTP gagal.';
-            header("Location: orders?res=warn&msg=" . urlencode("Status $cp_user diubah ke $new_status, tapi email GAGAL: " . $mail_err));
+            $mail_err = is_string($mail_result) ? $mail_result : 'SMTP gagal.';
+            header("Location: orders?res=warn&msg=" . urlencode("Status diubah ke $new_status, tapi email GAGAL: " . $mail_err));
         }
     } catch (Exception $e) {
         header("Location: orders?res=error&msg=" . urlencode($e->getMessage()));
@@ -205,14 +286,62 @@ include __DIR__ . '/library/header.php';
                                 <button class="ab py-1 px-2" type="button" data-bs-toggle="dropdown" title="Kelola">
                                     <i class="ph ph-dots-three-outline-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-dark p-1" style="background:var(--surface);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.5);font-size:12px;min-width:160px;">
-                                    <li><a class="dropdown-item rounded py-1 mb-1" href="?update_status=active&id=<?= $row['id'] ?>" style="color:var(--ok);">
-                                        <i class="ph-fill ph-play-circle me-2"></i> Aktifkan</a></li>
-                                    <li><a class="dropdown-item rounded py-1 mb-1" href="?update_status=suspended&id=<?= $row['id'] ?>" style="color:var(--warn);">
-                                        <i class="ph-fill ph-pause-circle me-2"></i> Suspend</a></li>
+                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end p-1" style="background:var(--surface);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.5);font-size:12px;min-width:200px;">
+                                    
+                                    <?php /* ── Login sebagai User ── */ ?>
+                                    <li>
+                                        <a class="dropdown-item rounded py-1 mb-1" href="/admin/login_as_user.php?user_id=<?= $row['user_id'] ?>" target="_blank" style="color:var(--accent);">
+                                            <i class="ph-fill ph-user-switch me-2"></i> Login sebagai User
+                                        </a>
+                                    </li>
                                     <li><hr class="dropdown-divider my-1" style="border-color:var(--border);"></li>
-                                    <li><a class="dropdown-item rounded py-1" href="#" onclick="viewDetail('<?= htmlspecialchars(addslashes($row['username'] ?? '')) ?>', '<?= htmlspecialchars(addslashes($row['password'] ?? '')) ?>')">
-                                        <i class="ph-fill ph-key me-2"></i> Intip Akun</a></li>
+
+                                    <?php /* ── Create WHM & Aktifkan (hanya jika belum ada username) ── */ ?>
+                                    <?php if(empty($row['username'])): ?>
+                                    <li>
+                                        <a class="dropdown-item rounded py-1 mb-1" href="?create_whm=1&id=<?= $row['id'] ?>" style="color:#a78bfa;"
+                                           onclick="return confirm('Buat akun WHM & aktifkan order #<?= $row['id'] ?>?')">
+                                            <i class="ph-fill ph-cloud-arrow-up me-2"></i> Create WHM & Aktifkan
+                                        </a>
+                                    </li>
+                                    <?php else: ?>
+                                    <li>
+                                        <span class="dropdown-item rounded py-1 mb-1 disabled" style="color:var(--mut);cursor:not-allowed;opacity:.5;">
+                                            <i class="ph-fill ph-cloud-check me-2"></i> WHM Sudah Dibuat
+                                        </span>
+                                    </li>
+                                    <?php endif; ?>
+
+                                    <?php /* ── Suspend / Aktifkan ── */ ?>
+                                    <?php if(!empty($row['username'])): ?>
+                                    <li>
+                                        <a class="dropdown-item rounded py-1 mb-1" href="?update_status=active&id=<?= $row['id'] ?>" style="color:var(--ok);">
+                                            <i class="ph-fill ph-play-circle me-2"></i> Aktifkan
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item rounded py-1 mb-1" href="?update_status=suspended&id=<?= $row['id'] ?>" style="color:var(--warn);">
+                                            <i class="ph-fill ph-pause-circle me-2"></i> Suspend
+                                        </a>
+                                    </li>
+                                    <?php endif; ?>
+
+                                    <li><hr class="dropdown-divider my-1" style="border-color:var(--border);"></li>
+
+                                    <?php /* ── Intip Akun cPanel ── */ ?>
+                                    <li>
+                                        <a class="dropdown-item rounded py-1 mb-1" href="#" onclick="viewDetail('<?= htmlspecialchars(addslashes($row['username'] ?? '')) ?>', '<?= htmlspecialchars(addslashes($row['password'] ?? '')) ?>')">
+                                            <i class="ph-fill ph-key me-2"></i> Intip Akun cPanel
+                                        </a>
+                                    </li>
+
+                                    <?php /* ── Delete Order ── */ ?>
+                                    <li>
+                                        <a class="dropdown-item rounded py-1" href="#"
+                                           onclick="confirmDelete(<?= $row['id'] ?>, '<?= htmlspecialchars(addslashes($row['domain'] ?? '')) ?>')" style="color:var(--err);">
+                                            <i class="ph-fill ph-trash me-2"></i> Hapus Order
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </td>
@@ -241,6 +370,25 @@ include __DIR__ . '/library/header.php';
             </div>`,
             background: 'var(--card)', color: 'var(--text)',
             confirmButtonColor: 'var(--accent)', showCloseButton: true, showConfirmButton: false,
+        });
+    }
+    function confirmDelete(id, domain) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Hapus Order?',
+            html: `Order <b>#${id}</b> domain <code style="color:var(--accent)">${domain || '-'}</code> akan dihapus permanen.<br><small style="color:var(--mut);">Akun cPanel di WHM turut dihapus jika sudah dibuat.</small>`,
+            showCancelButton: true,
+            confirmButtonText: '<i class="ph-fill ph-trash me-1"></i> Ya, Hapus',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: 'var(--err)',
+            cancelButtonColor: 'var(--surface)',
+            background: 'var(--card)',
+            color: 'var(--text)',
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = `?delete_order=1&id=${id}`;
+            }
         });
     }
     <?php if(isset($_GET['res'])): ?>

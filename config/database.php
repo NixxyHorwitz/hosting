@@ -49,30 +49,30 @@ if ($set) {
     // =========================
     // WHM CONFIG (Dinamis dari DB)
     // =========================
-    define('WHM_HOST',     $set['whm_host']);
-    define('WHM_USERNAME', $set['whm_username']);
-    define('WHM_TOKEN',    $set['whm_token']);
+    if (!defined('WHM_HOST'))     define('WHM_HOST',     $set['whm_host']);
+    if (!defined('WHM_USERNAME')) define('WHM_USERNAME', $set['whm_username']);
+    if (!defined('WHM_TOKEN'))    define('WHM_TOKEN',    $set['whm_token']);
 
     // =========================
     // SITE INFO (Dinamis dari DB)
     // =========================
-    define('SITE_NAME', $set['site_name']);
-    define('SITE_TITLE', $set['site_title']);
-    define('SITE_DESC', $set['site_description']);
-    
+    if (!defined('SITE_NAME'))  define('SITE_NAME',  $set['site_name']);
+    if (!defined('SITE_TITLE')) define('SITE_TITLE', $set['site_title']);
+    if (!defined('SITE_DESC'))  define('SITE_DESC',  $set['site_description']);
+
     // =========================
     // CONTACT INFO (Dinamis dari DB)
     // =========================
-    define('CONTACT_PHONE', $set['contact_phone'] ?? '0274-892257');
-    define('CONTACT_BILLING', $set['contact_billing'] ?? 'billing@rumahweb.com');
-    define('CONTACT_INFO', $set['contact_info'] ?? 'info@rumahweb.com');
-    define('CONTACT_SUPPORT', $set['contact_support'] ?? 'teknis@rumahweb.com');
+    if (!defined('CONTACT_PHONE'))   define('CONTACT_PHONE',   $set['contact_phone']);
+    if (!defined('CONTACT_BILLING')) define('CONTACT_BILLING', $set['contact_billing']);
+    if (!defined('CONTACT_INFO'))    define('CONTACT_INFO',    $set['contact_info']);
+    if (!defined('CONTACT_SUPPORT')) define('CONTACT_SUPPORT', $set['contact_support']);
 }
 
 // =========================
 // DEFAULT NAMESERVER (Static)
 // =========================
-    define('NS1', $set['ns1']);
-    define('NS2', $set['ns2']);
-    define('NS3', $set['ns3'] ?? ''); 
-    define('NS4', $set['ns4'] ?? '');
+if (!defined('NS1')) define('NS1', $set['ns1']);
+if (!defined('NS2')) define('NS2', $set['ns2']);
+if (!defined('NS3')) define('NS3', $set['ns3'] ?? '');
+if (!defined('NS4')) define('NS4', $set['ns4'] ?? '');
