@@ -42,14 +42,7 @@ $_g_id       = trim($_lset['google_client_id'] ?? '');
 $_sso        = !empty($_g_id);
 $_google_url = '';
 if ($_sso) {
-    $_google_url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
-        'client_id'     => $_g_id,
-        'redirect_uri'  => base_url('auth/google'),
-        'response_type' => 'code',
-        'scope'         => 'openid email profile',
-        'access_type'   => 'online',
-        'prompt'        => 'select_account',
-    ]);
+    $_google_url = base_url('auth/google');
 }
 // Flash messages from OAuth callback
 if (!empty($_SESSION['auth_error']))   { $message_type = 'error'; $message_text = $_SESSION['auth_error']; unset($_SESSION['auth_error']); }

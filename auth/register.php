@@ -97,14 +97,7 @@ $_g_client_id_r  = trim($row_set['google_client_id'] ?? '');
 $_sso_enabled_r  = !empty($_g_client_id_r);
 $_google_url_r   = '';
 if ($_sso_enabled_r) {
-    $_google_url_r = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
-        'client_id'     => $_g_client_id_r,
-        'redirect_uri'  => base_url('auth/google'),
-        'response_type' => 'code',
-        'scope'         => 'openid email profile',
-        'access_type'   => 'online',
-        'prompt'        => 'select_account',
-    ]);
+    $_google_url_r = base_url('auth/google');
 }
 
 // Flash messages from OAuth callback
