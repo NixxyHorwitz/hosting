@@ -57,6 +57,54 @@ if (isset($_POST['update_profile'])) {
     }
 }
 
+// Cek & Tambah Kolom otomatis untuk 2FA
+$check_col = mysqli_query($conn, "SHOW COLUMNS FROM users LIKE 'gauth_secret'");
+if(mysqli_num_rows($check_col) == 0) {
+    mysqli_query($conn, "ALTER TABLE users ADD COLUMN gauth_secret VARCHAR(50) DEFAULT NULL, ADD COLUMN is_2fa_enabled TINYINT(1) DEFAULT 0");
+}
+
+// Handler AJAX 2FA
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action_2fa'])) {
+    header('Content-Type: application/json');
+    require_once __DIR__ . '/../core/GoogleAuthenticator.php';
+    $ga = new PHPGangsta_GoogleAuthenticator();
+    
+    if ($_POST['action_2fa'] === 'generate') {
+        $secret = $ga->createSecret();
+        $q_set = mysqli_query($conn, "SELECT site_name FROM settings WHERE id=1");
+        $ds = mysqli_fetch_assoc($q_set);
+        $site = $ds['site_name'] ?? 'SobatHosting';
+        
+        $qrCodeUrl = $ga->getQRCodeGoogleUrl($u['email'], $secret, $site);
+        echo json_encode(['success'=>true, 'secret'=>$secret, 'qr'=>$qrCodeUrl]);
+        exit;
+    } 
+    elseif ($_POST['action_2fa'] === 'verify_enable') {
+        $secret = $_POST['secret'];
+        $code = $_POST['code'];
+        if ($ga->verifyCode($secret, $code, 2)) {
+            $safesecret = mysqli_real_escape_string($conn, $secret);
+            mysqli_query($conn, "UPDATE users SET gauth_secret='$safesecret', is_2fa_enabled=1 WHERE id='$user_id'");
+            echo json_encode(['success'=>true, 'msg'=>'2FA Berhasil diaktifkan!']);
+        } else {
+            echo json_encode(['success'=>false, 'msg'=>'Kode OTP tidak valid. Coba lagi.']);
+        }
+        exit;
+    }
+    elseif ($_POST['action_2fa'] === 'disable') {
+        $kode = $_POST['code'];
+        $c_q = mysqli_query($conn, "SELECT gauth_secret FROM users WHERE id='$user_id'");
+        $c_u = mysqli_fetch_assoc($c_q);
+        if ($ga->verifyCode($c_u['gauth_secret'], $kode, 2)) {
+            mysqli_query($conn, "UPDATE users SET gauth_secret=NULL, is_2fa_enabled=0 WHERE id='$user_id'");
+            echo json_encode(['success'=>true, 'msg'=>'2FA telah dinonaktifkan.']);
+        } else {
+            echo json_encode(['success'=>false, 'msg'=>'Kode OTP salah.']);
+        }
+        exit;
+    }
+}
+
 // 3. Ambil Data Terbaru (Setelah update atau saat load halaman)
 $query = mysqli_query($conn, "SELECT * FROM users WHERE id = '$user_id'");
 $u = mysqli_fetch_assoc($query);
@@ -97,13 +145,29 @@ include __DIR__ . '/../library/header.php';
                     </p>
                 </div>
             </div>
+                
+                <div class="mt-4 pt-3 border-top text-start">
+                    <ul class="nav nav-pills flex-column gap-2" id="profile-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active fw-medium fs-6 d-flex align-items-center" id="tab-profile" data-bs-toggle="pill" href="#pane-profile" role="tab" style="border-radius:6px; color:var(--text);"><i class="bi bi-person me-2 fs-5"></i> Profil & Password</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-medium fs-6 d-flex align-items-center" id="tab-2fa" data-bs-toggle="pill" href="#pane-2fa" role="tab" style="border-radius:6px; color:var(--text);"><i class="bi bi-shield-lock me-2 fs-5"></i> Keamanan 2FA</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Kolom Kanan: Form Edit -->
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm" style="border-radius: 4px; background: white; border: 1px solid var(--border-color) !important;">
-            <div class="card-body p-4 p-md-5">
+        <div class="tab-content" id="pills-tabContent">
+            
+            <!-- PANE PROFILE -->
+            <div class="tab-pane fade show active" id="pane-profile" role="tabpanel">
+                <div class="card border-0 shadow-sm" style="border-radius: 4px; background: white; border: 1px solid var(--border-color) !important;">
+                    <div class="card-body p-4 p-md-5">
                 <form action="" method="POST">
                     
                     <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
@@ -170,6 +234,65 @@ include __DIR__ . '/../library/header.php';
             </div>
         </div>
     </div>
+    
+    <!-- PANE 2FA -->
+    <div class="tab-pane fade" id="pane-2fa" role="tabpanel">
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 4px; background: white; border: 1px solid var(--border-color) !important;">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                    <i class="bi bi-shield-check fs-5 me-2" style="color: #48cae4;"></i>
+                    <h6 class="fw-bold m-0 text-dark">Autentikasi Dua Faktor (2FA)</h6>
+                </div>
+                
+                <?php if ($u['is_2fa_enabled']): ?>
+                    <div class="alert alert-success d-flex align-items-center">
+                        <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+                        <div>
+                            <strong>2FA Sudah Aktif!</strong><br>
+                            <span class="small">Akun Anda saat ini terlindungi dengan Autentikasi Dua Faktor.</span>
+                        </div>
+                    </div>
+                    <p class="text-secondary small mb-4">Jika Anda ingin menonaktifkan fitur keamanan ini, silakan masukkan kode OTP dari aplikasi Authenticator Anda (contoh: Google Authenticator atau Authy).</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted small">KODE OTP SAAT INI</label>
+                            <div class="input-group">
+                                <input type="text" id="offOTP" class="form-control" placeholder="123456" maxlength="6">
+                                <button class="btn btn-danger px-3 py-2 fw-bold small" onclick="disable2FA()">MATIKAN 2FA</button>
+                            </div>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-warning" style="background:#fff3cd; border-color:#ffeeba;">
+                        Kami sangat menyarankan Anda agar mengaktifkan Otentikasi Dua Faktor (Two-Factor Authentication) untuk meningkatkan keamanan akun Anda.
+                    </div>
+                    <p class="text-secondary small mb-4">Otentikasi Dua Faktor dengan TOTP (Time-Based One Time Password) meminta Anda menggunakan perangkat mobile untuk membuat kode akses unik melalui aplikasi seperti <b>Google Authenticator</b> atau <b>Authy</b>.</p>
+                    
+                    <button class="btn btn-primary fw-medium px-4 mb-4" id="btnMulai2FA" onclick="start2FA()">Mulai Konfigurasi 2FA</button>
+
+                    <!-- WIZARD STEP KEDUA -->
+                    <div id="wizard2FA" style="display:none;" class="p-3 border rounded bg-light">
+                        <h6 class="fw-bold mb-3">Langkah Konfigurasi</h6>
+                        <p class="small text-secondary mb-3">1. Gunakan aplikasi Google Authenticator untuk scan QR Code di bawah, atau masukkan Kunci Rahasia secara manual.</p>
+                        
+                        <div class="text-center mb-3">
+                            <img id="qr2fa" src="" alt="QR Code" class="img-fluid border p-2 bg-white" style="max-width: 150px;">
+                            <div class="mt-2 fw-bold text-danger fs-5" id="secretText" style="letter-spacing: 2px;"></div>
+                        </div>
+                        
+                        <p class="small text-secondary mb-3">2. Masukkan kode 6 digit yang muncul di aplikasi Authenticator Anda untuk verifikasi.</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <input type="text" id="code2fa" class="form-control form-control-sm text-center fw-bold fs-5" style="max-width:150px; letter-spacing:3px;" placeholder="123456" maxlength="6">
+                            <button class="btn btn-success btn-sm px-4 fw-bold" onclick="verify2FA()">VERIFIKASI & AKTIFKAN</button>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    
+    </div> <!-- END TAB CONTENT -->
+    </div> <!-- END COL RIGHT -->
 </div>
 
 <style>
@@ -187,6 +310,47 @@ include __DIR__ . '/../library/header.php';
         p.type = p.type === 'password' ? 'text' : 'password';
         i.classList.toggle('bi-eye'); 
         i.classList.toggle('bi-eye-slash');
+    }
+
+    let globalSecret = '';
+    function start2FA() {
+        document.getElementById('btnMulai2FA').innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Loading...';
+        const fd = new FormData(); fd.append('action_2fa', 'generate');
+        fetch(window.location.href, {method:'POST', body:fd}).then(r=>r.json()).then(res=>{
+            if(res.success) {
+                globalSecret = res.secret;
+                document.getElementById('btnMulai2FA').style.display = 'none';
+                document.getElementById('wizard2FA').style.display = 'block';
+                document.getElementById('qr2fa').src = res.qr;
+                document.getElementById('secretText').innerText = res.secret;
+            }
+        });
+    }
+
+    function verify2FA() {
+        const c = document.getElementById('code2fa').value;
+        if(c.length < 6) return alert("Masukkan 6 digit kode!");
+        const fd = new FormData(); fd.append('action_2fa', 'verify_enable'); fd.append('secret', globalSecret); fd.append('code', c);
+        fetch(window.location.href, {method:'POST', body:fd}).then(r=>r.json()).then(res=>{
+            if(res.success) {
+                Swal.fire({icon:'success', title:'Aktif!', text:res.msg, allowOutsideClick:false}).then(()=>{ window.location.reload(); });
+            } else {
+                Swal.fire({icon:'error', title:'Gagal', text:res.msg});
+            }
+        });
+    }
+
+    function disable2FA() {
+        const c = document.getElementById('offOTP').value;
+        if(c.length < 6) return alert("Masukkan 6 digit kode!");
+        const fd = new FormData(); fd.append('action_2fa', 'disable'); fd.append('code', c);
+        fetch(window.location.href, {method:'POST', body:fd}).then(r=>r.json()).then(res=>{
+            if(res.success) {
+                Swal.fire({icon:'success', title:'Dinonaktifkan!', text:res.msg, allowOutsideClick:false}).then(()=>{ window.location.reload(); });
+            } else {
+                Swal.fire({icon:'error', title:'Gagal', text:res.msg});
+            }
+        });
     }
 
     <?php if($message_type): ?>

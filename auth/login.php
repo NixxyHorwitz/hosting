@@ -18,10 +18,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 $message_type = "error";
                 $message_text = "Akun belum aktif. Silakan verifikasi email Anda.";
             } else {
-                $_SESSION['user_id']   = $user['id'];
-                $_SESSION['user_nama'] = $user['nama'];
-                mysqli_query($conn, "UPDATE users SET last_login=NOW(), last_ip='" . mysqli_real_escape_string($conn, $_SERVER['REMOTE_ADDR']) . "' WHERE id='{$user['id']}'");
-                $message_type = "success_login";
+                // Check 2FA
+                if (isset($user['is_2fa_enabled']) && $user['is_2fa_enabled'] == 1) {
+                    $_SESSION['pending_2fa_id'] = $user['id'];
+                    $require_2fa = true;
+                } else {
+                    $_SESSION['user_id']   = $user['id'];
+                    $_SESSION['user_nama'] = $user['nama'];
+                    mysqli_query($conn, "UPDATE users SET last_login=NOW(), last_ip='" . mysqli_real_escape_string($conn, $_SERVER['REMOTE_ADDR']) . "' WHERE id='{$user['id']}'");
+                    $message_type = "success_login";
+                }
             }
         } else {
             $message_type = "error";
@@ -31,6 +37,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
         $message_type = "error";
         $message_text = "Email tidak ditemukan di sistem kami.";
     }
+}
+
+// Handle OTP Submission
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_2fa'])) {
+    if(!isset($_SESSION['pending_2fa_id'])) {
+        header("Location: login");
+        exit;
+    }
+    $uid = (int)$_SESSION['pending_2fa_id'];
+    $code = trim($_POST['otp_code'] ?? '');
+    
+    $q_u = mysqli_query($conn, "SELECT * FROM users WHERE id='$uid'");
+    $u_2fa = mysqli_fetch_assoc($q_u);
+    
+    require_once __DIR__ . '/../core/GoogleAuthenticator.php';
+    $ga = new PHPGangsta_GoogleAuthenticator();
+    
+    if ($ga->verifyCode($u_2fa['gauth_secret'], $code, 2)) {
+        // Log in user
+        $_SESSION['user_id']   = $u_2fa['id'];
+        $_SESSION['user_nama'] = $u_2fa['nama'];
+        mysqli_query($conn, "UPDATE users SET last_login=NOW(), last_ip='" . mysqli_real_escape_string($conn, $_SERVER['REMOTE_ADDR']) . "' WHERE id='{$u_2fa['id']}'");
+        unset($_SESSION['pending_2fa_id']);
+        $message_type = "success_login";
+    } else {
+        $require_2fa = true;
+        $message_type = "error";
+        $message_text = "Kode OTP tidak valid atau kadaluarsa.";
+    }
+}
+
+// Redirect if already sent to 2fa page
+if (isset($_SESSION['pending_2fa_id']) && !isset($require_2fa) && !isset($_POST['submit_2fa'])) {
+    $require_2fa = true;
 }
 
 // Load site settings + Google SSO URL
@@ -86,15 +126,41 @@ if (!empty($_SESSION['auth_success'])) { $message_type = 'success_login'; unset(
     </div>
 
     <div class="form-wrap">
-        <div class="form-title">Masuk Akun</div>
-        <div class="form-subtitle">Selamat datang kembali! Masukkan detail akun Anda.</div>
+        <?php if(isset($require_2fa) && $require_2fa === true): ?>
+            <div class="form-title" style="text-align:center;"><i class="ph-fill ph-shield-check" style="color:var(--accent);font-size:32px;"></i><br>Keamanan 2FA</div>
+            <div class="form-subtitle" style="text-align:center;">Akun Anda dilindungi Autentikasi Dua Faktor. Silakan masukkan 6 digit kode OTP dari Authenticator Anda.</div>
 
-        <?php if($message_type === 'error'): ?>
-        <div class="alert-box alert-err">
-            <i class="ph-fill ph-warning-circle"></i>
-            <?= htmlspecialchars($message_text) ?>
-        </div>
-        <?php endif; ?>
+            <?php if($message_type === 'error'): ?>
+            <div class="alert-box alert-err">
+                <i class="ph-fill ph-warning-circle"></i>
+                <?= htmlspecialchars($message_text) ?>
+            </div>
+            <?php endif; ?>
+
+            <form action="" method="POST" style="margin-top:20px;">
+                <div class="field-group">
+                    <input type="text" style="letter-spacing:6px; font-size:1.5rem; text-align:center;" class="form-input fw-bold" name="otp_code" placeholder="123456" maxlength="6" required autocomplete="one-time-code">
+                </div>
+                <button type="submit" name="submit_2fa" class="btn-submit mt-2">
+                    <i class="ph ph-lock-key"></i> Verifikasi Kode
+                </button>
+            </form>
+            
+            <div style="text-align:center; margin-top: 20px;">
+                <a href="login?cancel_2fa=1" class="forgot-link">Batalkan Login & Kembali</a>
+            </div>
+            <?php if (isset($_GET['cancel_2fa'])) { unset($_SESSION['pending_2fa_id']); header("Location: login"); exit; } ?>
+            
+        <?php else: ?>
+            <div class="form-title">Masuk Akun</div>
+            <div class="form-subtitle">Selamat datang kembali! Masukkan detail akun Anda.</div>
+
+            <?php if($message_type === 'error'): ?>
+            <div class="alert-box alert-err">
+                <i class="ph-fill ph-warning-circle"></i>
+                <?= htmlspecialchars($message_text) ?>
+            </div>
+            <?php endif; ?>
 
         <!-- Google SSO -->
         <?php if($_sso): ?>
@@ -143,6 +209,7 @@ if (!empty($_SESSION['auth_success'])) { $message_type = 'success_login'; unset(
         <p class="bottom-note">
             Belum punya akun? <a href="<?= base_url('auth/register') ?>">Daftar gratis</a>
         </p>
+        <?php endif; ?>
     </div>
 </div>
 
