@@ -54,9 +54,9 @@ body { font-family: 'Inter', sans-serif; background: var(--bg); min-height: 100v
 .form-topbar a { color: var(--blue); font-weight: 600; text-decoration: none; }
 .form-topbar a:hover { text-decoration: underline; }
 
-.form-wrap { max-width: 430px; width: 100%; }
-.form-title    { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
-.form-subtitle { font-size: 13px; color: var(--sub); margin-bottom: 28px; line-height: 1.6; }
+.form-wrap { max-width: 430px; width: 100%; margin: 0 auto; }
+.form-title    { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 6px; text-align: center; }
+.form-subtitle { font-size: 13px; color: var(--sub); margin-bottom: 28px; line-height: 1.6; text-align: center; }
 
 /* ── Fields ── */
 .field-group  { margin-bottom: 18px; }
