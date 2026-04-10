@@ -157,27 +157,27 @@ document.addEventListener('DOMContentLoaded', function() {
     Swal.fire({
         icon: 'warning',
         title: 'Server Sedang Penuh',
-        text: 'Maaf, server kami sedang penuh. Silakan coba beberapa saat lagi.',
+        text: 'Semua slot server saat ini sudah terisi. Silakan coba beberapa saat lagi atau hubungi support.',
         confirmButtonText: 'Kembali',
-        confirmButtonColor: '#007bff',
+        confirmButtonColor: '#f59e0b',
         allowOutsideClick: false,
     }).then(() => window.history.back());
     <?php elseif ($error_popup === 'payment_error'): ?>
     Swal.fire({
-        icon: 'warning',
-        title: 'Server Sedang Penuh',
-        text: 'Maaf, server kami sedang penuh. Silakan coba beberapa saat lagi.',
-        confirmButtonText: 'Kembali',
-        confirmButtonColor: '#007bff',
+        icon: 'error',
+        title: 'Gagal Membuat Invoice',
+        text: 'Terjadi kesalahan saat menghubungi payment gateway. Silakan coba lagi atau hubungi admin.',
+        confirmButtonText: 'Coba Lagi',
+        confirmButtonColor: '#ef4444',
         allowOutsideClick: false,
     }).then(() => window.history.back());
     <?php elseif ($error_popup === 'db_error'): ?>
     Swal.fire({
-        icon: 'warning',
-        title: 'Server Sedang Penuh',
-        text: 'Maaf, server kami sedang penuh. Silakan coba beberapa saat lagi.',
+        icon: 'error',
+        title: 'Kesalahan Database',
+        text: 'Gagal menyimpan data order ke database. Silakan hubungi administrator.',
         confirmButtonText: 'Kembali',
-        confirmButtonColor: '#007bff',
+        confirmButtonColor: '#ef4444',
         allowOutsideClick: false,
     }).then(() => window.history.back());
     <?php endif; ?>
