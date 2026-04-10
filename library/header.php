@@ -3,11 +3,13 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 // Fetch standard settings
 $_site_name = 'SobatHosting';
 $_site_logo = '';
+$_site_favicon = '';
 if (isset($conn)) {
-    $r_set = @mysqli_query($conn, "SELECT site_name, site_logo FROM settings LIMIT 1");
+    $r_set = @mysqli_query($conn, "SELECT site_name, site_logo, site_favicon FROM settings LIMIT 1");
     if ($r_set && $row = mysqli_fetch_assoc($r_set)) {
-        if (!empty($row['site_name'])) $_site_name = htmlspecialchars($row['site_name']);
-        if (!empty($row['site_logo'])) $_site_logo = htmlspecialchars($row['site_logo']);
+        if (!empty($row['site_name']))    $_site_name    = htmlspecialchars($row['site_name']);
+        if (!empty($row['site_logo']))    $_site_logo    = htmlspecialchars($row['site_logo']);
+        if (!empty($row['site_favicon'])) $_site_favicon = htmlspecialchars($row['site_favicon']);
     }
 }
 
@@ -38,8 +40,12 @@ if (!function_exists('base_url')) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= isset($page_title) ? $page_title . " - " : "" ?><?= $_site_name ?></title>
-    <?php if(!empty($_site_logo)): ?>
-    <link rel="icon" href="<?= base_url('uploads/' . $_site_logo) ?>" type="image/x-icon">
+    <?php
+    // Favicon: use site_favicon first, fall back to site_logo
+    $_fav_file = !empty($_site_favicon) ? $_site_favicon : $_site_logo;
+    if (!empty($_fav_file)):
+    ?>
+    <link rel="icon" href="<?= base_url('uploads/' . $_fav_file) ?>" type="image/x-icon">
     <?php endif; ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
@@ -266,7 +272,11 @@ if (!function_exists('base_url')) {
 
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand">
+        <?php if(!empty($_site_logo)): ?>
+        <img src="<?= base_url('uploads/' . $_site_logo) ?>" alt="<?= $_site_name ?>" style="max-height:32px;max-width:130px;object-fit:contain;">
+        <?php else: ?>
         <i class="bi bi-clouds-fill"></i> <?= $_site_name ?>
+        <?php endif; ?>
     </div>
     
     <div class="nav flex-column mt-2">

@@ -6,13 +6,30 @@ if (isset($_SESSION['user_id'])) {
     header("Location: /hosting"); 
     exit();
 }
+
+// Load site settings from DB
+$_landing_name    = 'SobatHosting';
+$_landing_logo    = '';
+$_landing_favicon = '';
+$_landing_desc    = 'Solusi Cloud & Domain Modern';
+$_landing_res = @mysqli_query($conn, "SELECT site_name, site_logo, site_favicon, site_description FROM settings LIMIT 1");
+if ($_landing_res && $_landing_row = mysqli_fetch_assoc($_landing_res)) {
+    if (!empty($_landing_row['site_name']))    $_landing_name    = htmlspecialchars($_landing_row['site_name']);
+    if (!empty($_landing_row['site_logo']))    $_landing_logo    = htmlspecialchars($_landing_row['site_logo']);
+    if (!empty($_landing_row['site_favicon'])) $_landing_favicon = htmlspecialchars($_landing_row['site_favicon']);
+    if (!empty($_landing_row['site_description'])) $_landing_desc = htmlspecialchars($_landing_row['site_description']);
+}
+$_landing_fav_file = !empty($_landing_favicon) ? $_landing_favicon : $_landing_logo;
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SobatHosting — Solusi Cloud & Domain Modern</title>
+    <title><?= $_landing_name ?> — Solusi Cloud & Domain Modern</title>
+    <?php if(!empty($_landing_fav_file)): ?>
+    <link rel="icon" href="/uploads/<?= $_landing_fav_file ?>" type="image/x-icon">
+    <?php endif; ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -85,7 +102,13 @@ if (isset($_SESSION['user_id'])) {
 
 <nav class="navbar navbar-expand-lg navbar-light sticky-top">
     <div class="container">
-        <a class="navbar-brand fs-3" href="#">SOBATHOS<span class="text-dark">.</span></a>
+        <a class="navbar-brand" href="#">
+            <?php if(!empty($_landing_logo)): ?>
+            <img src="/uploads/<?= $_landing_logo ?>" alt="<?= $_landing_name ?>" style="max-height:36px;max-width:150px;object-fit:contain;">
+            <?php else: ?>
+            <span class="fs-3"><?= strtoupper(preg_replace('/[aeiou ]/i', '', $_landing_name)) ?>.</span>
+            <?php endif; ?>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>

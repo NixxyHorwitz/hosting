@@ -74,13 +74,14 @@ if (isset($_SESSION['pending_2fa_id']) && !isset($require_2fa) && !isset($_POST[
 }
 
 // Load site settings + Google SSO URL
-$_ls   = @mysqli_query($conn, "SELECT site_name, site_logo, google_client_id FROM settings LIMIT 1");
+$_ls   = @mysqli_query($conn, "SELECT site_name, site_logo, site_favicon, google_client_id FROM settings LIMIT 1");
 $_lset = ($_ls ? mysqli_fetch_assoc($_ls) : []) ?? [];
-$_site_name  = htmlspecialchars($_lset['site_name'] ?? (defined('SITE_NAME') ? SITE_NAME : 'SobatHosting'));
-$_site_logo  = $_lset['site_logo'] ?? '';
-$_g_id       = trim($_lset['google_client_id'] ?? '');
-$_sso        = !empty($_g_id);
-$_google_url = '';
+$_site_name    = htmlspecialchars($_lset['site_name'] ?? (defined('SITE_NAME') ? SITE_NAME : 'SobatHosting'));
+$_site_logo    = $_lset['site_logo'] ?? '';
+$_site_favicon = $_lset['site_favicon'] ?? '';
+$_g_id         = trim($_lset['google_client_id'] ?? '');
+$_sso          = !empty($_g_id);
+$_google_url   = '';
 if ($_sso) {
     $_google_url = base_url('auth/google');
 }
@@ -94,8 +95,10 @@ if (!empty($_SESSION['auth_success'])) { $message_type = 'success_login'; unset(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Masuk — <?= $_site_name ?></title>
-    <?php if(!empty($_site_logo)): ?>
-    <link rel="icon" href="/uploads/<?= htmlspecialchars($_site_logo) ?>" type="image/x-icon">
+    <?php
+    $_fav_file = !empty($_site_favicon) ? $_site_favicon : $_site_logo;
+    if (!empty($_fav_file)): ?>
+    <link rel="icon" href="/uploads/<?= htmlspecialchars($_fav_file) ?>" type="image/x-icon">
     <?php endif; ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -110,8 +113,12 @@ if (!empty($_SESSION['auth_success'])) { $message_type = 'success_login'; unset(
 
 <div class="brand-panel">
     <a href="/" class="brand-logo">
+        <?php if(!empty($_site_logo)): ?>
+        <img src="/uploads/<?= htmlspecialchars($_site_logo) ?>" alt="<?= $_site_name ?>" style="max-height:38px;max-width:140px;object-fit:contain;">
+        <?php else: ?>
         <div class="brand-logo-icon"><i class="ph ph-cloud-arrow-up"></i></div>
         <?= $_site_name ?>
+        <?php endif; ?>
     </a>
     <div>
         <div class="brand-tagline">Selamat Datang<br>Kembali!</div>

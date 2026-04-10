@@ -132,12 +132,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
 }
 
 // Site settings for logo/name + Google SSO
-$site_name = 'SobatHosting';
-$site_logo = '';
-$res = @mysqli_query($conn, "SELECT site_name, site_logo, google_client_id FROM settings LIMIT 1");
+$site_name    = 'SobatHosting';
+$site_logo    = '';
+$site_favicon = '';
+$res = @mysqli_query($conn, "SELECT site_name, site_logo, site_favicon, google_client_id FROM settings LIMIT 1");
 if ($res && $row_set = mysqli_fetch_assoc($res)) {
-    if (!empty($row_set['site_name'])) $site_name = $row_set['site_name'];
-    if (!empty($row_set['site_logo'])) $site_logo  = $row_set['site_logo'];
+    if (!empty($row_set['site_name']))    $site_name    = $row_set['site_name'];
+    if (!empty($row_set['site_logo']))    $site_logo    = $row_set['site_logo'];
+    if (!empty($row_set['site_favicon'])) $site_favicon = $row_set['site_favicon'];
 }
 
 // Build Google OAuth URL
@@ -166,8 +168,10 @@ if (!empty($_SESSION['auth_success'])) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Daftar — <?= htmlspecialchars($site_name) ?></title>
-<?php if(!empty($site_logo)): ?>
-<link rel="icon" href="/uploads/<?= htmlspecialchars($site_logo) ?>" type="image/x-icon">
+<?php
+$_fav_file = !empty($site_favicon) ? $site_favicon : $site_logo;
+if (!empty($_fav_file)): ?>
+<link rel="icon" href="/uploads/<?= htmlspecialchars($_fav_file) ?>" type="image/x-icon">
 <?php endif; ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -399,8 +403,12 @@ textarea.form-input { height: 80px; padding: 10px 14px; resize: vertical; }
 <!-- Left Panel -->
 <div class="brand-panel">
     <a href="/" class="brand-logo">
+        <?php if(!empty($site_logo)): ?>
+        <img src="/uploads/<?= htmlspecialchars($site_logo) ?>" alt="<?= htmlspecialchars($site_name) ?>" style="max-height:38px;max-width:140px;object-fit:contain;">
+        <?php else: ?>
         <div class="brand-logo-icon"><i class="ph ph-cloud-arrow-up"></i></div>
         <?= htmlspecialchars($site_name) ?>
+        <?php endif; ?>
     </a>
     <div>
         <div class="brand-tagline">Selamat Datang<br>di <?= htmlspecialchars($site_name) ?>!</div>

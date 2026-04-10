@@ -88,7 +88,7 @@ include __DIR__ . '/../library/header.php';
             </div>
             
             <div>
-                <a href="<?= base_url('tickets/create') ?>" class="btn btn-sm btn-primary px-4 fw-medium" style="border-radius: 4px;">Buka Tiket Baru</a>
+                <a href="<?= base_url('hosting/tickets/create') ?>" class="btn btn-sm btn-primary px-4 fw-medium" style="border-radius: 4px;">Buka Tiket Baru</a>
             </div>
         </div>
         

@@ -68,6 +68,32 @@ if (isset($_POST['update_settings'])) {
     $google_client_id = mysqli_real_escape_string($conn, $_POST['google_client_id']);
     $google_client_secret = mysqli_real_escape_string($conn, $_POST['google_client_secret']);
 
+    // ── Upload Logo ────────────────────────────────────────
+    $logo_sql = '';
+    if (!empty($_FILES['site_logo_file']['name'])) {
+        $allowed_logo = ['jpg','jpeg','png','gif','svg','webp'];
+        $ext_logo = strtolower(pathinfo($_FILES['site_logo_file']['name'], PATHINFO_EXTENSION));
+        if (in_array($ext_logo, $allowed_logo) && $_FILES['site_logo_file']['size'] <= 2097152) {
+            $logo_name = 'logo_' . time() . '.' . $ext_logo;
+            if (move_uploaded_file($_FILES['site_logo_file']['tmp_name'], __DIR__ . '/../uploads/' . $logo_name)) {
+                $logo_sql = ", site_logo='" . mysqli_real_escape_string($conn, $logo_name) . "'";
+            }
+        }
+    }
+
+    // ── Upload Favicon ──────────────────────────────────────
+    $favicon_sql = '';
+    if (!empty($_FILES['site_favicon_file']['name'])) {
+        $allowed_fav = ['ico','png','jpg','jpeg','svg','gif'];
+        $ext_fav = strtolower(pathinfo($_FILES['site_favicon_file']['name'], PATHINFO_EXTENSION));
+        if (in_array($ext_fav, $allowed_fav) && $_FILES['site_favicon_file']['size'] <= 512000) {
+            $fav_name = 'favicon_' . time() . '.' . $ext_fav;
+            if (move_uploaded_file($_FILES['site_favicon_file']['tmp_name'], __DIR__ . '/../uploads/' . $fav_name)) {
+                $favicon_sql = ", site_favicon='" . mysqli_real_escape_string($conn, $fav_name) . "'";
+            }
+        }
+    }
+
     $update = "UPDATE settings SET 
                site_name='$site_name', 
                site_title='$site_title', 
@@ -89,6 +115,7 @@ if (isset($_POST['update_settings'])) {
                smtp_from_name='$smtp_from',
                google_client_id='$google_client_id',
                google_client_secret='$google_client_secret'
+               $logo_sql $favicon_sql
                WHERE id=1";
 
     if (mysqli_query($conn, $update)) {
@@ -201,7 +228,7 @@ include __DIR__ . '/library/header.php';
     </div>
 </div>
 
-<form action="" method="POST">
+<form action="" method="POST" enctype="multipart/form-data">
     <div class="row g-4">
         <!-- Sidebar Tabs -->
         <div class="col-md-3">
@@ -266,6 +293,61 @@ include __DIR__ . '/library/header.php';
                             <div class="mb-3">
                                 <label class="fl">Deskripsi SEO (Meta Description)</label>
                                 <textarea name="site_description" class="fc w-100 form-control-sm" rows="3"><?php echo htmlspecialchars($set['site_description']); ?></textarea>
+                            </div>
+
+                            <!-- ── Logo & Favicon Upload ── -->
+                            <h5 class="fw-bold text-white border-bottom border-secondary pb-2 mb-3 mt-4 fs-6">Logo & Favicon Website</h5>
+                            <div class="row g-3 mb-3">
+                                <!-- Logo -->
+                                <div class="col-md-6">
+                                    <label class="fl">Logo Website</label>
+                                    <p style="font-size:11px;color:var(--mut);margin-bottom:8px;">Tampil di sidebar & halaman login. Format: JPG, PNG, SVG, WebP. Maks 2MB.</p>
+                                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                                        <div id="logo-preview-wrap" style="width:80px;height:56px;border-radius:8px;border:1px dashed var(--border);background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+                                            <?php if(!empty($set['site_logo'])): ?>
+                                            <img id="logo-preview" src="<?= base_url('uploads/' . $set['site_logo']) ?>" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
+                                            <?php else: ?>
+                                            <img id="logo-preview" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain;display:none;">
+                                            <i class="ph ph-image" style="font-size:22px;color:var(--mut);"></i>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <label for="logoFileInput" class="btn btn-sm d-flex align-items-center gap-2 px-3 py-2" style="background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--text);width:fit-content;">
+                                                <i class="ph ph-upload-simple"></i> Pilih File Logo
+                                            </label>
+                                            <input type="file" id="logoFileInput" name="site_logo_file" accept="image/*" class="d-none" onchange="previewImg(this,'logo-preview','logo-icon-placeholder')">
+                                            <?php if(!empty($set['site_logo'])): ?>
+                                            <div style="font-size:11px;color:var(--mut);margin-top:5px;"><i class="ph ph-check-circle" style="color:var(--ok);"></i> Logo aktif: <code style="font-size:10px;"><?= htmlspecialchars($set['site_logo']) ?></code></div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Favicon -->
+                                <div class="col-md-6">
+                                    <label class="fl">Favicon</label>
+                                    <p style="font-size:11px;color:var(--mut);margin-bottom:8px;">Ikon kecil di tab browser. Format: ICO, PNG, SVG. Maks 512KB. Ukuran ideal: 32×32px.</p>
+                                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                                        <div style="width:56px;height:56px;border-radius:8px;border:1px dashed var(--border);background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+                                            <?php if(!empty($set['site_favicon'])): ?>
+                                            <img id="fav-preview" src="<?= base_url('uploads/' . $set['site_favicon']) ?>" alt="Favicon" style="max-width:100%;max-height:100%;object-fit:contain;">
+                                            <?php else: ?>
+                                            <img id="fav-preview" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain;display:none;">
+                                            <i id="fav-icon-placeholder" class="ph ph-browser" style="font-size:22px;color:var(--mut);"></i>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <label for="faviconFileInput" class="btn btn-sm d-flex align-items-center gap-2 px-3 py-2" style="background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:12px;color:var(--text);width:fit-content;">
+                                                <i class="ph ph-upload-simple"></i> Pilih File Favicon
+                                            </label>
+                                            <input type="file" id="faviconFileInput" name="site_favicon_file" accept="image/*,.ico" class="d-none" onchange="previewImg(this,'fav-preview','fav-icon-placeholder')">
+                                            <?php if(!empty($set['site_favicon'])): ?>
+                                            <div style="font-size:11px;color:var(--mut);margin-top:5px;"><i class="ph ph-check-circle" style="color:var(--ok);"></i> Favicon aktif: <code style="font-size:10px;"><?= htmlspecialchars($set['site_favicon']) ?></code></div>
+                                            <?php else: ?>
+                                            <div style="font-size:11px;color:var(--mut);margin-top:5px;"><i class="ph ph-info"></i> Belum diatur, browser akan pakai ikon default.</div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             <h5 class="fw-bold text-white border-bottom border-secondary pb-2 mb-3 mt-4 fs-6">Default Nameservers</h5>
@@ -597,6 +679,20 @@ include __DIR__ . '/library/header.php';
             btn.innerHTML = originText;
             btn.disabled = false;
         });
+    }
+
+    // Live preview for logo/favicon upload
+    function previewImg(input, previewId, placeholderIconId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById(previewId);
+                if (img) { img.src = e.target.result; img.style.display = 'block'; }
+                const ico = placeholderIconId ? document.getElementById(placeholderIconId) : null;
+                if (ico) ico.style.display = 'none';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
     }
 
     // Insert parameter tag into textarea at cursor position
