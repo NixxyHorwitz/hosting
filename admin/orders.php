@@ -4,131 +4,102 @@ if(!defined('NS1')) include __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../core/WHMClient.php';
 require_once __DIR__ . '/../core/mailer.php';
 
-// ─── HANDLER: CREATE WHM & AKTIFKAN ───────────────────────────────────────────
-if (isset($_GET['create_whm']) && isset($_GET['id'])) {
-    $id = (int)$_GET['id'];
-    $ord_q = mysqli_query($conn, "SELECT o.*, u.email, u.nama FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = '$id' LIMIT 1");
-    $order = mysqli_fetch_assoc($ord_q);
-    if (!$order) { header("Location: orders?res=error&msg=" . urlencode("Order tidak ditemukan.")); exit(); }
-    if (!empty($order['username'])) { header("Location: orders?res=error&msg=" . urlencode("Akun WHM sudah pernah dibuat untuk order ini.")); exit(); }
+// ─── AJAX HANDLER ────────────────────────────────────────────────
+if (!empty($_POST['ajax_action'])) {
+    header('Content-Type: application/json');
+    $id     = (int)($_POST['id'] ?? 0);
+    $action = $_POST['ajax_action'];
+    $resp   = ['ok' => false, 'msg' => 'Aksi tidak dikenal.'];
 
-    $whm_id  = (int)$order['whm_id'];
-    $whmQ    = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id' LIMIT 1");
-    $whm_srv = mysqli_fetch_assoc($whmQ);
-    if (!$whm_srv) { header("Location: orders?res=error&msg=" . urlencode("Server WHM tidak ditemukan.")); exit(); }
+    if (!$id) { echo json_encode(['ok'=>false,'msg'=>'ID tidak valid.']); exit(); }
 
-    $whm      = new WHMClient($whm_srv['whm_host'], $whm_srv['whm_username'], $whm_srv['whm_token']);
-    $username = 'client' . rand(100, 999);
-    $password = bin2hex(random_bytes(8)) . rand(10, 99) . '!';
-    $email    = $order['email'];
-    $domain   = $order['domain'];
-    $package  = $order['whm_package_name'];
+    // ── Create WHM & Aktifkan
+    if ($action === 'create_whm') {
+        $ord_q = mysqli_query($conn, "SELECT o.*, u.email, u.nama FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = '$id' LIMIT 1");
+        $order = mysqli_fetch_assoc($ord_q);
+        if (!$order) { echo json_encode(['ok'=>false,'msg'=>'Order tidak ditemukan.']); exit(); }
+        if (!empty($order['username'])) { echo json_encode(['ok'=>false,'msg'=>'Akun WHM sudah pernah dibuat.']); exit(); }
 
-    try {
-        // Simpan dulu ke DB, set active
-        $stmt = $conn->prepare("UPDATE orders SET status='active', username=?, password=? WHERE id=?");
-        $stmt->bind_param("ssi", $username, $password, $id);
-        $stmt->execute();
-        $stmt->close();
+        $whm_id  = (int)$order['whm_id'];
+        $whmQ    = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id' LIMIT 1");
+        $whm_srv = mysqli_fetch_assoc($whmQ);
+        if (!$whm_srv) { echo json_encode(['ok'=>false,'msg'=>'Server WHM tidak ditemukan.']); exit(); }
 
-        // Buat akun cPanel di WHM
-        $whm->createAccount([
-            'username'     => $username,
-            'domain'       => $domain,
-            'password'     => $password,
-            'contactemail' => $email,
-            'plan'         => $package
-        ]);
+        $whm      = new WHMClient($whm_srv['whm_host'], $whm_srv['whm_username'], $whm_srv['whm_token']);
+        $username = 'client' . rand(100, 999);
+        $password = bin2hex(random_bytes(8)) . rand(10, 99) . '!';
+        $email    = $order['email'];
+        $domain   = $order['domain'];
+        $package  = $order['whm_package_name'];
 
-        // Kirim email notifikasi order
-        sendEmailTemplate($email, $order['nama'], 'order_hosting', [
-            'nama'     => $order['nama'],
-            'domain'   => $domain,
-            'username' => $username,
-            'password' => $password,
-        ]);
+        try {
+            $stmt = $conn->prepare("UPDATE orders SET status='active', username=?, password=? WHERE id=?");
+            $stmt->bind_param("ssi", $username, $password, $id);
+            $stmt->execute(); $stmt->close();
 
-        header("Location: orders?res=success&msg=" . urlencode("WHM berhasil dibuat! User: $username, Domain: $domain. Email terkirim."));
-    } catch (Exception $e) {
-        // Rollback ke pending jika gagal
-        mysqli_query($conn, "UPDATE orders SET status='pending', username=NULL, password=NULL WHERE id='$id'");
-        header("Location: orders?res=error&msg=" . urlencode("Gagal buat WHM: " . $e->getMessage()));
-    }
-    exit();
-}
+            $whm->createAccount(['username'=>$username,'domain'=>$domain,'password'=>$password,'contactemail'=>$email,'plan'=>$package]);
 
-// ─── HANDLER: DELETE ORDER ────────────────────────────────────────────────────
-if (isset($_GET['delete_order']) && isset($_GET['id'])) {
-    $id = (int)$_GET['id'];
-    $ord_q = mysqli_query($conn, "SELECT o.username, o.whm_id FROM orders o WHERE o.id = '$id' LIMIT 1");
-    $order = mysqli_fetch_assoc($ord_q);
-    if (!$order) { header("Location: orders?res=error&msg=" . urlencode("Order tidak ditemukan.")); exit(); }
+            $mail = sendEmailTemplate($email, $order['nama'], 'order_hosting', ['nama'=>$order['nama'],'domain'=>$domain,'username'=>$username,'password'=>$password]);
+            $mail_note = ($mail === true) ? ' Email terkirim.' : ' (Email gagal: ' . (is_string($mail) ? $mail : 'SMTP error') . ')';
 
-    // Coba hapus akun cPanel jika ada
-    if (!empty($order['username'])) {
-        $whm_id = (int)$order['whm_id'];
-        $whmQ   = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id' LIMIT 1");
+            $resp = ['ok'=>true, 'msg'=>"WHM berhasil dibuat! User: $username, Domain: $domain.$mail_note", 'username'=>$username, 'status'=>'active'];
+        } catch (Exception $e) {
+            mysqli_query($conn, "UPDATE orders SET status='pending', username=NULL, password=NULL WHERE id='$id'");
+            $resp = ['ok'=>false, 'msg'=>'Gagal buat WHM: ' . $e->getMessage()];
+        }
+
+    // ── Update Status (suspend / aktifkan)
+    } elseif ($action === 'update_status') {
+        $new_status = in_array($_POST['status'] ?? '', ['active','suspended']) ? $_POST['status'] : '';
+        if (!$new_status) { echo json_encode(['ok'=>false,'msg'=>'Status tidak valid.']); exit(); }
+
+        $ord_q = mysqli_query($conn, "SELECT o.username, o.whm_id, o.domain, u.email, u.nama FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = '$id' LIMIT 1");
+        $order = mysqli_fetch_assoc($ord_q);
+        if (!$order) { echo json_encode(['ok'=>false,'msg'=>'Order tidak ditemukan.']); exit(); }
+
+        $whmQ   = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '{$order['whm_id']}' LIMIT 1");
         $whmSrv = mysqli_fetch_assoc($whmQ);
-        if ($whmSrv) {
-            try {
-                $whm = new WHMClient($whmSrv['whm_host'], $whmSrv['whm_username'], $whmSrv['whm_token']);
-                $whm->terminateAccount($order['username']);
-            } catch (Exception $e) {
-                // Log, tapi tetap hapus dari DB
-                error_log('WHM terminate error (order ' . $id . '): ' . $e->getMessage());
+        if (!$whmSrv) { echo json_encode(['ok'=>false,'msg'=>'Server WHM tidak ditemukan.']); exit(); }
+
+        $whm = new WHMClient($whmSrv['whm_host'], $whmSrv['whm_username'], $whmSrv['whm_token']);
+        try {
+            if ($new_status === 'active') {
+                $whm->unsuspendAccount($order['username']);
+                $mail = sendEmailTemplate($order['email'], $order['nama'], 'unsuspend_hosting', ['nama'=>$order['nama'],'domain'=>$order['domain']]);
+            } else {
+                $whm->suspendAccount($order['username'], 'Aksi Admin');
+                $mail = sendEmailTemplate($order['email'], $order['nama'], 'suspend_hosting', ['nama'=>$order['nama'],'domain'=>$order['domain']]);
+            }
+            mysqli_query($conn, "UPDATE orders SET status='$new_status' WHERE id='$id'");
+            $mail_note = ($mail === true) ? ' Email terkirim.' : ' (Email gagal)';
+            $resp = ['ok'=>true, 'msg'=>"Status diubah ke $new_status.$mail_note", 'status'=>$new_status];
+        } catch (Exception $e) {
+            $resp = ['ok'=>false, 'msg'=>$e->getMessage()];
+        }
+
+    // ── Delete Order
+    } elseif ($action === 'delete_order') {
+        $ord_q = mysqli_query($conn, "SELECT o.username, o.whm_id FROM orders o WHERE o.id = '$id' LIMIT 1");
+        $order = mysqli_fetch_assoc($ord_q);
+        if (!$order) { echo json_encode(['ok'=>false,'msg'=>'Order tidak ditemukan.']); exit(); }
+
+        if (!empty($order['username'])) {
+            $whmQ = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '{$order['whm_id']}' LIMIT 1");
+            $whmSrv = mysqli_fetch_assoc($whmQ);
+            if ($whmSrv) {
+                try {
+                    $whm = new WHMClient($whmSrv['whm_host'], $whmSrv['whm_username'], $whmSrv['whm_token']);
+                    $whm->terminateAccount($order['username']);
+                } catch (Exception $e) {
+                    error_log('WHM terminate (order '.$id.'): '.$e->getMessage());
+                }
             }
         }
+        mysqli_query($conn, "DELETE FROM orders WHERE id = '$id'");
+        $resp = ['ok'=>true, 'msg'=>"Order #$id berhasil dihapus."];
     }
 
-    mysqli_query($conn, "DELETE FROM orders WHERE id = '$id'");
-    header("Location: orders?res=success&msg=" . urlencode("Order #$id berhasil dihapus."));
-    exit();
-}
-
-// ─── HANDLER: UPDATE STATUS (SUSPEND / AKTIFKAN) ─────────────────────────────
-if (isset($_GET['update_status']) && isset($_GET['id'])) {
-    $id = mysqli_real_escape_string($conn, $_GET['id']);
-    $new_status = mysqli_real_escape_string($conn, $_GET['update_status']);
-    
-    $check_order = mysqli_query($conn, "SELECT o.username, o.whm_id, o.domain, u.email, u.nama 
-                                        FROM orders o LEFT JOIN users u ON o.user_id = u.id 
-                                        WHERE o.id = '$id'");
-    $order_data = mysqli_fetch_assoc($check_order);
-    if(!$order_data) { header("Location: orders?res=error&msg=" . urlencode("Pesanan tidak ditemukan.")); exit(); }
-    
-    $cp_user = $order_data['username'];
-    $whm_id  = (int)$order_data['whm_id'];
-    $u_email = $order_data['email'];
-    $u_nama  = $order_data['nama'];
-    $domain  = $order_data['domain'];
-
-    $whmQuery  = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id'");
-    $whm_server = mysqli_fetch_assoc($whmQuery);
-    if(!$whm_server) { header("Location: orders?res=error&msg=" . urlencode("Server WHM tidak ditemukan.")); exit(); }
-    
-    $whm = new WHMClient($whm_server['whm_host'], $whm_server['whm_username'], $whm_server['whm_token']);
-    
-    try {
-        if ($new_status == 'active') {
-            $whm->unsuspendAccount($cp_user);
-            $mail_result = sendEmailTemplate($u_email, $u_nama, 'unsuspend_hosting', ['nama' => $u_nama, 'domain' => $domain]);
-        } elseif ($new_status == 'suspended') {
-            $whm->suspendAccount($cp_user, "Aksi Admin");
-            $mail_result = sendEmailTemplate($u_email, $u_nama, 'suspend_hosting', ['nama' => $u_nama, 'domain' => $domain]);
-        } else {
-            $mail_result = true;
-        }
-        mysqli_query($conn, "UPDATE orders SET status = '$new_status' WHERE id = '$id'");
-
-        if ($mail_result === true) {
-            header("Location: orders?res=success&msg=" . urlencode("Status $cp_user diubah ke $new_status. Email notifikasi terkirim."));
-        } else {
-            $mail_err = is_string($mail_result) ? $mail_result : 'SMTP gagal.';
-            header("Location: orders?res=warn&msg=" . urlencode("Status diubah ke $new_status, tapi email GAGAL: " . $mail_err));
-        }
-    } catch (Exception $e) {
-        header("Location: orders?res=error&msg=" . urlencode($e->getMessage()));
-    }
+    echo json_encode($resp);
     exit();
 }
 
@@ -234,7 +205,7 @@ include __DIR__ . '/library/header.php';
                 </thead>
                 <tbody>
                     <?php while($row = mysqli_fetch_assoc($query)): ?>
-                    <tr>
+                    <tr id="order-row-<?= $row['id'] ?>">
                         <td class="fw-bold" style="color:var(--mut); font-size:11px;">#<?= $row['id'] ?></td>
                         <td>
                             <div class="user-link view-user-detail" data-userid="<?= $row['user_id'] ?>" style="color:var(--text);">
@@ -291,14 +262,14 @@ include __DIR__ . '/library/header.php';
                                     <?php /* ── Create WHM & Aktifkan (hanya jika belum ada username) ── */ ?>
                                     <?php if(empty($row['username'])): ?>
                                     <li>
-                                        <a class="dropdown-item rounded py-1 mb-1" href="?create_whm=1&id=<?= $row['id'] ?>" style="color:#a78bfa;"
-                                           onclick="return confirm('Buat akun WHM & aktifkan order #<?= $row['id'] ?>?')">
+                                        <a class="dropdown-item rounded py-1 mb-1" href="#"
+                                           onclick="doCreateWhm(<?= $row['id'] ?>, this)" style="color:#a78bfa;">
                                             <i class="ph-fill ph-cloud-arrow-up me-2"></i> Create WHM & Aktifkan
                                         </a>
                                     </li>
                                     <?php else: ?>
                                     <li>
-                                        <span class="dropdown-item rounded py-1 mb-1 disabled" style="color:var(--mut);cursor:not-allowed;opacity:.5;">
+                                        <span class="dropdown-item rounded py-1 mb-1" style="color:var(--mut);opacity:.5;cursor:not-allowed;">
                                             <i class="ph-fill ph-cloud-check me-2"></i> WHM Sudah Dibuat
                                         </span>
                                     </li>
@@ -307,12 +278,14 @@ include __DIR__ . '/library/header.php';
                                     <?php /* ── Suspend / Aktifkan ── */ ?>
                                     <?php if(!empty($row['username'])): ?>
                                     <li>
-                                        <a class="dropdown-item rounded py-1 mb-1" href="?update_status=active&id=<?= $row['id'] ?>" style="color:var(--ok);">
+                                        <a class="dropdown-item rounded py-1 mb-1" href="#"
+                                           onclick="doAction(<?= $row['id'] ?>, 'update_status', 'active', this)" style="color:var(--ok);">
                                             <i class="ph-fill ph-play-circle me-2"></i> Aktifkan
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item rounded py-1 mb-1" href="?update_status=suspended&id=<?= $row['id'] ?>" style="color:var(--warn);">
+                                        <a class="dropdown-item rounded py-1 mb-1" href="#"
+                                           onclick="doAction(<?= $row['id'] ?>, 'update_status', 'suspended', this)" style="color:var(--warn);">
                                             <i class="ph-fill ph-pause-circle me-2"></i> Suspend
                                         </a>
                                     </li>
@@ -330,7 +303,7 @@ include __DIR__ . '/library/header.php';
                                     <?php /* ── Delete Order ── */ ?>
                                     <li>
                                         <a class="dropdown-item rounded py-1" href="#"
-                                           onclick="confirmDelete(<?= $row['id'] ?>, '<?= htmlspecialchars(addslashes($row['domain'] ?? '')) ?>')" style="color:var(--err);">
+                                           onclick="doDeleteOrder(<?= $row['id'] ?>, '<?= htmlspecialchars(addslashes($row['domain'] ?? '')) ?>', this)" style="color:var(--err);">
                                             <i class="ph-fill ph-trash me-2"></i> Hapus Order
                                         </a>
                                     </li>
@@ -345,53 +318,165 @@ include __DIR__ . '/library/header.php';
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    function viewDetail(user, pass) {
-        Swal.fire({
-            title: '<i class="ph-fill ph-key" style="color:var(--accent);"></i> Kredensial cPanel',
-            html: `<div class="text-start mt-2">
-                <div class="mb-3 p-3 rounded" style="background:var(--surface);border:1px solid var(--border);">
-                    <div style="font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Username cPanel</div>
-                    <div style="font-family:monospace;font-size:14px;color:var(--text);">${user}</div>
-                </div>
-                <div class="p-3 rounded" style="background:var(--surface);border:1px solid var(--border);">
-                    <div style="font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Password cPanel</div>
-                    <div style="font-family:monospace;font-size:14px;color:var(--text);">${pass}</div>
-                </div>
-            </div>`,
-            background: 'var(--card)', color: 'var(--text)',
-            confirmButtonColor: 'var(--accent)', showCloseButton: true, showConfirmButton: false,
-        });
+const ORDERS_URL = window.location.pathname + window.location.search.replace(/[?&](res|msg)=[^&]*/g,'');
+
+// ── Disable/enable tombol aksi di row
+function lockRow(id, lock) {
+    const btn = $(`#order-row-${id} button[data-bs-toggle='dropdown']`);
+    btn.prop('disabled', lock);
+    if (lock) btn.addClass('opacity-50');
+    else btn.removeClass('opacity-50');
+}
+
+// ── Animasi baris saat create WHM berjalan
+function setRowCreating(id, creating) {
+    const statusCell = $(`#order-row-${id} td:nth-child(6)`);
+    if (creating) {
+        statusCell.data('original', statusCell.html());
+        let dots = 0;
+        statusCell.data('interval', setInterval(() => {
+            dots = (dots + 1) % 4;
+            statusCell.html(`<span style="color:#a78bfa;font-weight:700;"><i class="ph ph-spinner-gap" style="animation:spin .8s linear infinite;display:inline-block;"></i> Creating WHM${'.'.repeat(dots)}</span>`);
+        }, 400));
+    } else {
+        clearInterval(statusCell.data('interval'));
+        statusCell.html(statusCell.data('original') || '');
     }
-    function confirmDelete(id, domain) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Hapus Order?',
-            html: `Order <b>#${id}</b> domain <code style="color:var(--accent)">${domain || '-'}</code> akan dihapus permanen.<br><small style="color:var(--mut);">Akun cPanel di WHM turut dihapus jika sudah dibuat.</small>`,
-            showCancelButton: true,
-            confirmButtonText: '<i class="ph-fill ph-trash me-1"></i> Ya, Hapus',
-            cancelButtonText: 'Batal',
-            confirmButtonColor: 'var(--err)',
-            cancelButtonColor: 'var(--surface)',
-            background: 'var(--card)',
-            color: 'var(--text)',
-            reverseButtons: true,
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = `?delete_order=1&id=${id}`;
+}
+
+// ── Core AJAX function
+function ajaxAction(payload, onSuccess, onFail) {
+    const id = payload.id;
+    lockRow(id, true);
+    $.post(window.location.pathname, payload, 'json')
+        .done(data => {
+            if (data.ok) onSuccess(data);
+            else onFail(data.msg || 'Terjadi kesalahan.');
+        })
+        .fail(() => onFail('Koneksi gagal.'))
+        .always(() => lockRow(id, false));
+}
+
+// ── Create WHM & Aktifkan
+function doCreateWhm(id, el) {
+    event.preventDefault();
+    Swal.fire({
+        icon: 'question', title: 'Create WHM & Aktifkan?',
+        html: `Buat akun cPanel WHM untuk order <b>#${id}</b>?`,
+        showCancelButton: true,
+        confirmButtonText: '<i class="ph-fill ph-cloud-arrow-up me-1"></i> Ya, Buat',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#a78bfa', cancelButtonColor: 'var(--surface)',
+        background: 'var(--card)', color: 'var(--text)', reverseButtons: true,
+    }).then(r => {
+        if (!r.isConfirmed) return;
+        setRowCreating(id, true);
+        ajaxAction(
+            { ajax_action: 'create_whm', id: id },
+            data => {
+                setRowCreating(id, false);
+                Swal.fire({ icon:'success', title:'WHM Dibuat!', text: data.msg,
+                    background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--ok)'
+                }).then(() => location.reload());
+            },
+            msg => {
+                setRowCreating(id, false);
+                Swal.fire({ icon:'error', title:'Gagal!', text: msg,
+                    background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--err)'
+                });
             }
-        });
-    }
-    <?php if(isset($_GET['res'])): ?>
-        <?php if($_GET['res'] == 'success'): ?>
-        Swal.fire({ icon:'success', title:'Berhasil!', text:'<?= htmlspecialchars($_GET['msg'] ?? '') ?>', timer:2500, showConfirmButton:false, background:'var(--card)', color:'var(--text)' });
-        <?php elseif($_GET['res'] == 'warn'): ?>
-        Swal.fire({ icon:'warning', title:'Aksi Berhasil, Email Gagal', text:'<?= htmlspecialchars($_GET['msg'] ?? '') ?>', background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--warn)' });
-        <?php elseif($_GET['res'] == 'error'): ?>
-        Swal.fire({ icon:'error', title:'Gagal!', text:'<?= htmlspecialchars($_GET['msg'] ?? '') ?>', background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--accent)' });
-        <?php endif; ?>
-    <?php endif; ?>
+        );
+    });
+}
+
+// ── Suspend / Aktifkan
+function doAction(id, action, status, el) {
+    event.preventDefault();
+    const label = status === 'active' ? 'Aktifkan' : 'Suspend';
+    const color = status === 'active' ? 'var(--ok)' : 'var(--warn)';
+    const icon  = status === 'active' ? 'question' : 'warning';
+    Swal.fire({
+        icon, title: label + ' Hosting?',
+        html: `Order <b>#${id}</b> akan di-<b>${label.toLowerCase()}</b>.`,
+        showCancelButton: true,
+        confirmButtonText: label, cancelButtonText: 'Batal',
+        confirmButtonColor: color, cancelButtonColor: 'var(--surface)',
+        background: 'var(--card)', color: 'var(--text)', reverseButtons: true,
+    }).then(r => {
+        if (!r.isConfirmed) return;
+        ajaxAction(
+            { ajax_action: 'update_status', id: id, status: status },
+            data => {
+                const badge = status === 'active'
+                    ? `<span class="quick-badge qb-ok"><i class="ph-fill ph-check-circle"></i> ACTIVE</span>`
+                    : `<span class="quick-badge qb-err"><i class="ph-fill ph-pause-circle"></i> SUSPEND</span>`;
+                $(`#order-row-${id} td:nth-child(6)`).html(badge);
+                const icon2 = data.msg.includes('gagal') ? 'warning' : 'success';
+                Swal.fire({ icon: icon2, title: icon2 === 'success' ? 'Berhasil!' : 'Perhatian',
+                    text: data.msg, timer: 2500, showConfirmButton: false,
+                    background: 'var(--card)', color: 'var(--text)'
+                });
+            },
+            msg => Swal.fire({ icon:'error', title:'Gagal!', text: msg,
+                background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--err)'
+            })
+        );
+    });
+}
+
+// ── Hapus Order
+function doDeleteOrder(id, domain, el) {
+    event.preventDefault();
+    Swal.fire({
+        icon: 'warning', title: 'Hapus Order?',
+        html: `Order <b>#${id}</b> domain <code style="color:var(--accent)">${domain || '-'}</code> akan dihapus permanen.<br><small style="color:var(--mut);">Akun cPanel di WHM turut dihapus jika sudah dibuat.</small>`,
+        showCancelButton: true,
+        confirmButtonText: '<i class="ph-fill ph-trash me-1"></i> Ya, Hapus',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: 'var(--err)', cancelButtonColor: 'var(--surface)',
+        background: 'var(--card)', color: 'var(--text)', reverseButtons: true,
+    }).then(r => {
+        if (!r.isConfirmed) return;
+        ajaxAction(
+            { ajax_action: 'delete_order', id: id },
+            data => {
+                $(`#order-row-${id}`).fadeOut(400, function(){ $(this).remove(); });
+                Swal.fire({ icon:'success', title:'Terhapus!', text: data.msg,
+                    timer: 2000, showConfirmButton: false,
+                    background: 'var(--card)', color: 'var(--text)'
+                });
+            },
+            msg => Swal.fire({ icon:'error', title:'Gagal!', text: msg,
+                background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--err)'
+            })
+        );
+    });
+}
+
+// ── Intip Akun cPanel
+function viewDetail(user, pass) {
+    Swal.fire({
+        title: '<i class="ph-fill ph-key" style="color:var(--accent);"></i> Kredensial cPanel',
+        html: `<div class="text-start mt-2">
+            <div class="mb-3 p-3 rounded" style="background:var(--surface);border:1px solid var(--border);">
+                <div style="font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Username cPanel</div>
+                <div style="font-family:monospace;font-size:14px;color:var(--text);">${user}</div>
+            </div>
+            <div class="p-3 rounded" style="background:var(--surface);border:1px solid var(--border);">
+                <div style="font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Password cPanel</div>
+                <div style="font-family:monospace;font-size:14px;color:var(--text);">${pass}</div>
+            </div>
+        </div>`,
+        background: 'var(--card)', color: 'var(--text)',
+        confirmButtonColor: 'var(--accent)', showCloseButton: true, showConfirmButton: false,
+    });
+}
+
+// ── CSS spinner inline
+$('<style>@keyframes spin{to{transform:rotate(360deg)}}</style>').appendTo('head');
 </script>
 
 <?php include __DIR__ . '/library/footer.php'; ?>
