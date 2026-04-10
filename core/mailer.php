@@ -56,7 +56,9 @@ function sendEmailTemplate($to_email, $to_name, $template_name, $data = []) {
         $mail->send();
         return true;
     } catch (Exception $e) {
-        // file_put_contents('mail_error.log', $mail->ErrorInfo . "\n", FILE_APPEND);
-        return false;
+        if (!isset($GLOBALS['is_smtp_test'])) {
+            error_log('SMTP Error: ' . $mail->ErrorInfo);
+        }
+        return $mail->ErrorInfo;
     }
 }

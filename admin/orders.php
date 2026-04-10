@@ -6,19 +6,37 @@ require_once __DIR__ . '/../core/WHMClient.php';
 if (isset($_GET['update_status']) && isset($_GET['id'])) {
     $id = mysqli_real_escape_string($conn, $_GET['id']);
     $new_status = mysqli_real_escape_string($conn, $_GET['update_status']);
-    $check_order = mysqli_query($conn, "SELECT username, whm_id FROM orders WHERE id = '$id'");
+    
+    $check_order = mysqli_query($conn, "SELECT o.username, o.whm_id, o.domain, u.email, u.nama 
+                                        FROM orders o LEFT JOIN users u ON o.user_id = u.id 
+                                        WHERE o.id = '$id'");
     $order_data = mysqli_fetch_assoc($check_order);
     if(!$order_data) { header("Location: orders?res=error&msg=" . urlencode("Pesanan tidak ditemukan.")); exit(); }
+    
     $cp_user = $order_data['username'];
     $whm_id = (int)$order_data['whm_id'];
+    $u_email = $order_data['email'];
+    $u_nama = $order_data['nama'];
+    $domain = $order_data['domain'];
+
     $whmQuery = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id'");
     $whm_server = mysqli_fetch_assoc($whmQuery);
     if(!$whm_server) { header("Location: orders?res=error&msg=" . urlencode("Database Node Server WHM tidak ditemukan.")); exit(); }
+    
+    require_once __DIR__ . '/../core/mailer.php';
     $whm = new WHMClient($whm_server['whm_host'], $whm_server['whm_username'], $whm_server['whm_token']);
+    
     try {
-        if ($new_status == 'active') $whm->unsuspendAccount($cp_user);
-        elseif ($new_status == 'suspended') $whm->suspendAccount($cp_user, "Belum Bayar");
+        if ($new_status == 'active') {
+            $whm->unsuspendAccount($cp_user);
+            sendEmailTemplate($u_email, $u_nama, 'hosting_unsuspended', ['nama' => $u_nama, 'domain' => $domain]);
+        } elseif ($new_status == 'suspended') {
+            $whm->suspendAccount($cp_user, "Aksi Admin");
+            sendEmailTemplate($u_email, $u_nama, 'hosting_suspended', ['nama' => $u_nama, 'domain' => $domain]);
+        }
         mysqli_query($conn, "UPDATE orders SET status = '$new_status' WHERE id = '$id'");
+        mysqli_query($conn, "UPDATE user_hosting SET status = '" . ($new_status == 'active' ? 'aktif' : 'suspended') . "' WHERE order_id = '$id'");
+        
         header("Location: orders?res=success&msg=" . urlencode("Status $cp_user diubah ke $new_status"));
     } catch (Exception $e) {
         header("Location: orders?res=error&msg=" . urlencode($e->getMessage()));

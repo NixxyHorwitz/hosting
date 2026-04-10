@@ -257,15 +257,15 @@ include __DIR__ . '/library/header.php';
                         <div class="tab-pane fade" id="tab-google" role="tabpanel">
                             <h5 class="fw-bold text-white border-bottom border-secondary pb-2 mb-3 fs-6">Konfigurasi Google Single Sign-On (SSO)</h5>
 
-                            <div class="p-3 mb-4 rounded" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);font-size:12.5px;">
-                                <p class="text-white fw-bold mb-2"><i class="ph ph-info me-1"></i> Cara Setup:</p>
-                                <ol class="text-muted mb-2 ps-3" style="line-height:2;">
+                            <div class="p-3 mb-4 rounded bg-light border" style="font-size:12.5px;">
+                                <p class="text-dark fw-bold mb-2"><i class="ph ph-info me-1"></i> Cara Setup:</p>
+                                <ol class="text-secondary mb-2 ps-3" style="line-height:2;">
                                     <li>Buka <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-primary">Google Cloud Console → Credentials</a></li>
-                                    <li>Buat OAuth 2.0 Client ID → pilih <strong class="text-white">Web application</strong></li>
-                                    <li>Tambahkan <strong class="text-white">Authorized redirect URI</strong> berikut:</li>
+                                    <li>Buat OAuth 2.0 Client ID → pilih <strong class="text-dark">Web application</strong></li>
+                                    <li>Tambahkan <strong class="text-dark">Authorized redirect URI</strong> berikut:</li>
                                 </ol>
                                 <div class="d-flex align-items-center gap-2 mt-1">
-                                    <code id="cb-uri" style="background:rgba(0,0,0,.3);color:#7ee787;padding:6px 12px;border-radius:6px;flex:1;font-size:12px;"><?= base_url('auth/google') ?></code>
+                                    <code id="cb-uri" class="bg-white border text-dark" style="padding:6px 12px;border-radius:6px;flex:1;font-size:12px;"><?= base_url('auth/google') ?></code>
                                     <button type="button" class="btn btn-sm btn-outline-secondary" style="font-size:11px;white-space:nowrap;" onclick="navigator.clipboard.writeText(document.getElementById('cb-uri').innerText).then(()=>{this.textContent='✓ Copied!';setTimeout(()=>{this.textContent='Copy'},1500)})">Copy</button>
                                 </div>
                             </div>

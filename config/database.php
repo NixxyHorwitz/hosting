@@ -26,11 +26,15 @@ if (!function_exists('base_url')) {
 
 
 // 4. Koneksi Database
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "hosting";
 
+$host = "kerjasama.my.id";
+$user = "kerw2623_host";
+$pass = "kerw2623_host";
+$db   = "kerw2623_host";
+// $host = "localhost";
+// $user = "root";
+// $pass = "";
+// $db   = "hosting";
 $conn = mysqli_connect($host, $user, $pass, $db);
 
 if (!$conn) {

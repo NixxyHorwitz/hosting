@@ -86,13 +86,13 @@ include __DIR__ . '/../library/header.php';
             <div class="d-flex align-items-center">
                 <i class="bi bi-headset text-muted" style="font-size: 2.5rem; opacity: 0.5;"></i>
                 <div class="ms-3">
-                    <span class="fw-bold text-dark d-block">Kesulitan menentukan batas Storage atau Trafik?</span>
-                    <span class="text-secondary small">Konsultasikan langsung dengan teknisi kami yang akan online 24/7.</span>
+                    <span class="fw-bold text-dark d-block">Kesulitan atau butuh bantuan teknis?</span>
+                    <span class="text-secondary small">Jangan ragu buat tiket dukungan. Tim ahli kami siap membantu Anda 24/7.</span>
                 </div>
             </div>
             
             <div>
-                <button class="btn btn-sm btn-primary px-4 fw-medium" style="border-radius: 4px;">Live Chat</button>
+                <a href="<?= base_url('tickets/create') ?>" class="btn btn-sm btn-primary px-4 fw-medium" style="border-radius: 4px;">Buka Tiket Baru</a>
             </div>
         </div>
         

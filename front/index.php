@@ -5,6 +5,14 @@ require_once __DIR__ . '/../core/api_helper.php';
 if (session_status() === PHP_SESSION_NONE) session_start();
 if (isset($_SESSION['user_id'])) { header("Location: /hosting"); exit(); }
 
+$_site_name_db = 'SobatHosting';
+$_site_logo_db = '';
+$r_set = @mysqli_query($conn, "SELECT site_name, site_logo FROM settings LIMIT 1");
+if ($r_set && $row = mysqli_fetch_assoc($r_set)) {
+    if (!empty($row['site_name'])) $_site_name_db = htmlspecialchars($row['site_name']);
+    if (!empty($row['site_logo'])) $_site_logo_db = htmlspecialchars($row['site_logo']);
+}
+
 // Load all CMS data
 $cms = [];
 $q = mysqli_query($conn, "SELECT * FROM landing_content");
@@ -51,7 +59,10 @@ function renderLandingIcon(string $icon, string $extraClass = ''): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($navbar['site_name'] ?? 'SobatHosting') ?> — <?= htmlspecialchars($hero['subheading'] ?? '') ?></title>
+    <title><?= $_site_name_db ?> — <?= htmlspecialchars($hero['subheading'] ?? '') ?></title>
+    <?php if(!empty($_site_logo_db)): ?>
+    <link rel="icon" href="/uploads/<?= $_site_logo_db ?>" type="image/x-icon">
+    <?php endif; ?>
     <meta name="description" content="<?= htmlspecialchars($hero['description'] ?? '') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">

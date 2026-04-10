@@ -1,11 +1,27 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
-// Pastikan koneksi $conn sudah ada sebelum file ini di-include
+// Fetch standard settings
+$_site_name = 'SobatHosting';
+$_site_logo = '';
+if (isset($conn)) {
+    $r_set = @mysqli_query($conn, "SELECT site_name, site_logo FROM settings LIMIT 1");
+    if ($r_set && $row = mysqli_fetch_assoc($r_set)) {
+        if (!empty($row['site_name'])) $_site_name = htmlspecialchars($row['site_name']);
+        if (!empty($row['site_logo'])) $_site_logo = htmlspecialchars($row['site_logo']);
+    }
+}
+
+// Fetch user data
+$hosting_aktif = 0;
 if (isset($_SESSION['user_id']) && isset($conn)) {
-    $user_id = $_SESSION['user_id'];
+    $user_id = mysqli_real_escape_string($conn, $_SESSION['user_id']);
     $query = mysqli_query($conn, "SELECT nama FROM users WHERE id = '$user_id'");
     $data = mysqli_fetch_assoc($query);
     $user_nama = $data['nama'] ?? "User";
+    
+    // Count active hosting
+    $q_act = @mysqli_query($conn, "SELECT COUNT(id) as c FROM user_hosting WHERE user_id='$user_id' AND status='aktif'");
+    if ($q_act) $hosting_aktif = mysqli_fetch_assoc($q_act)['c'] ?? 0;
 } else {
     $user_nama = "Tamu"; 
 }
@@ -21,7 +37,10 @@ if (!function_exists('base_url')) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($page_title) ? $page_title . " - " : "" ?>Client Area</title>
+    <title><?= isset($page_title) ? $page_title . " - " : "" ?><?= $_site_name ?></title>
+    <?php if(!empty($_site_logo)): ?>
+    <link rel="icon" href="<?= base_url('uploads/' . $_site_logo) ?>" type="image/x-icon">
+    <?php endif; ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -247,7 +266,7 @@ if (!function_exists('base_url')) {
 
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <i class="bi bi-clouds-fill"></i> sobathost
+        <i class="bi bi-clouds-fill"></i> <?= $_site_name ?>
     </div>
     
     <div class="nav flex-column mt-2">
@@ -267,7 +286,7 @@ if (!function_exists('base_url')) {
     
 
         <a class="nav-link <?= $is_hosting_section ? 'active' : '' ?>" data-bs-toggle="collapse" href="#menuHosting" role="button" aria-expanded="<?= $is_hosting_section ? 'true' : 'false' ?>">
-            <i class="bi bi-hdd-network"></i> Hosting <span class="nav-badge">0</span>
+            <i class="bi bi-hdd-network"></i> Hosting <span class="nav-badge"><?= $hosting_aktif ?></span>
         </a>
         <div class="collapse <?= $is_hosting_section ? 'show' : '' ?>" id="menuHosting">
             <div class="collapse-inner py-1">

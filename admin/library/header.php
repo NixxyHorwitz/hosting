@@ -8,13 +8,27 @@ if (!function_exists('base_url')) {
 }
 
 $current_uri = $_SERVER['REQUEST_URI'] ?? '';
+
+// Fetch site settings
+$_site_name = 'Cloud';
+$_site_logo = '';
+if (isset($conn)) {
+    $r_set = @mysqli_query($conn, "SELECT site_name, site_logo FROM settings LIMIT 1");
+    if ($r_set && $row = mysqli_fetch_assoc($r_set)) {
+        if (!empty($row['site_name'])) $_site_name = htmlspecialchars($row['site_name']);
+        if (!empty($row['site_logo'])) $_site_logo = htmlspecialchars($row['site_logo']);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= isset($page_title) ? $page_title . " - " : "" ?>CloudAdmin</title>
+    <title><?= isset($page_title) ? $page_title . " - " : "" ?><?= $_site_name ?> Admin</title>
+    <?php if(!empty($_site_logo)): ?>
+    <link rel="icon" href="<?= base_url('uploads/' . $_site_logo) ?>" type="image/x-icon">
+    <?php endif; ?>
     
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -40,7 +54,7 @@ $current_uri = $_SERVER['REQUEST_URI'] ?? '';
 <aside class="sidebar" id="sidebar">
     <a href="<?= base_url('admin/index') ?>" class="sb-brand">
         <div class="sb-logo"><i class="ph-fill ph-cloud-lightning"></i></div>
-        <div class="sb-name">Cloud<span>Admin</span></div>
+        <div class="sb-name"><?= $_site_name ?><span>Admin</span></div>
     </a>
 
     <div class="sb-scroll">

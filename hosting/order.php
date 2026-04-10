@@ -202,9 +202,19 @@ include __DIR__ . '/../library/header.php';
                             <div>
                                 <small class="d-block fw-bold text-dark">Instruksi Nameserver:</small>
                                 <small class="text-secondary">Arahkan domain Anda ke nameserver berikut agar bisa terhubung dengan hosting:</small>
-                                <div class="mt-2">
-                                    <code class="bg-white px-2 py-1 border text-dark" style="border-radius: 3px;"><?= htmlspecialchars($settings['ns1'] ?? 'ns1.sobathosting.com') ?></code>
-                                    <code class="bg-white px-2 py-1 border text-dark ms-1" style="border-radius: 3px;"><?= htmlspecialchars($settings['ns2'] ?? 'ns2.sobathosting.com') ?></code>
+                                <div class="mt-2" style="display:flex; gap: 4px; flex-wrap: wrap;">
+                                    <?php
+                                    for ($i = 1; $i <= 4; $i++) {
+                                        $ns = trim($settings['ns'.$i] ?? '');
+                                        if(!empty($ns)) {
+                                            echo '<code class="bg-white px-2 py-1 border text-dark" style="border-radius: 3px;">' . htmlspecialchars($ns) . '</code>';
+                                        }
+                                    }
+                                    if (empty(trim($settings['ns1'] ?? ''))) {
+                                        echo '<code class="bg-white px-2 py-1 border text-dark" style="border-radius: 3px;">ns1.sobathosting.com</code>';
+                                        echo '<code class="bg-white px-2 py-1 border text-dark" style="border-radius: 3px;">ns2.sobathosting.com</code>';
+                                    }
+                                    ?>
                                 </div>
                             </div>
                         </div>

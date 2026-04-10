@@ -21,6 +21,10 @@ if (!$row_order) {
     die("❌ Data hosting tidak ditemukan.");
 }
 
+// Ambil settings (nameservers)
+$sq = mysqli_query($conn, "SELECT ns1, ns2, ns3, ns4 FROM settings LIMIT 1");
+$settings = mysqli_fetch_assoc($sq) ?? [];
+
 // --- AMBIL STATISTIK REAL-TIME DARI WHM ---
 $whm_id = (int)$row_order['whm_id'];
 $whmQuery = mysqli_query($conn, "SELECT * FROM whm_servers WHERE id = '$whm_id'");
@@ -182,6 +186,26 @@ include __DIR__ . '/../library/header.php';
                     </span>
                     <h3 class="fw-bold m-0 text-dark"><?= htmlspecialchars($row_order['nama_paket'] ?? 'Paket Hosting', ENT_QUOTES) ?></h3>
                     <p class="text-muted mb-3"><?= htmlspecialchars($row_order['domain']) ?></p>
+                    
+                    <div class="mt-2">
+                        <small class="text-muted d-block mb-1 fw-bold" style="font-size:11px;">NAMESERVERS</small>
+                        <div style="display:flex; gap: 4px; flex-wrap: wrap;">
+                            <?php
+                            $ns_rendered = false;
+                            for ($i = 1; $i <= 4; $i++) {
+                                $ns = trim($settings['ns'.$i] ?? '');
+                                if(!empty($ns)) {
+                                    echo '<code class="bg-light px-2 py-1 border text-dark" style="border-radius: 4px; font-size:11.5px;">' . htmlspecialchars($ns) . '</code>';
+                                    $ns_rendered = true;
+                                }
+                            }
+                            if (!$ns_rendered) {
+                                echo '<code class="bg-light px-2 py-1 border text-dark" style="border-radius: 4px; font-size:11.5px;">ns1.sobathosting.com</code>';
+                                echo '<code class="bg-light px-2 py-1 border text-dark" style="border-radius: 4px; font-size:11.5px;">ns2.sobathosting.com</code>';
+                            }
+                            ?>
+                        </div>
+                    </div>
                 </div>
                 <div class="text-end">
                     <a href="http://<?= $row_order['domain'] ?>" target="_blank" class="btn btn-rw-outline me-2"><i class="bi bi-box-arrow-up-right me-1"></i> Visit Website</a>
