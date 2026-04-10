@@ -514,9 +514,13 @@ include __DIR__ . '/library/header.php';
                                 </div>
                             </div>
                         </div>
-
-    </div>
-</div>
+                        <?php endwhile; ?>
+                    </div><!-- #accordionTemplates -->
+                </div><!-- .cb -->
+            </div><!-- #templates-container -->
+        </div><!-- .col-md-9 -->
+    </div><!-- .row -->
+</div><!-- container -->
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
