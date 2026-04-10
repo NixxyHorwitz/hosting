@@ -23,49 +23,55 @@ $stats = mysqli_fetch_assoc(mysqli_query($conn, "SELECT
     (SELECT COUNT(DISTINCT ip) FROM site_traffic WHERE DATE(created_at)=CURDATE()) unique_today
 "));
 
+// Helper: kompatibel PHP 7.x (mysqli_fetch_all butuh mysqlnd)
+function fetch_all_assoc($result) {
+    $rows = [];
+    if ($result) while ($row = mysqli_fetch_assoc($result)) $rows[] = $row;
+    return $rows;
+}
+
 // ── Recent Orders (last 8) ─────────────────────────────────────
-$recent_orders = mysqli_fetch_all(mysqli_query($conn,
+$recent_orders = fetch_all_assoc(mysqli_query($conn,
     "SELECT o.*, u.nama as nama_user, h.nama_paket
      FROM orders o LEFT JOIN users u ON o.user_id=u.id LEFT JOIN hosting_plans h ON o.hosting_plan_id=h.id
-     ORDER BY o.created_at DESC LIMIT 8"), MYSQLI_ASSOC);
+     ORDER BY o.created_at DESC LIMIT 8"));
 
 // ── Recent Invoices (last 6) ───────────────────────────────────
-$recent_invoices = mysqli_fetch_all(mysqli_query($conn,
+$recent_invoices = fetch_all_assoc(mysqli_query($conn,
     "SELECT i.*, u.nama as nama_user FROM invoices i LEFT JOIN users u ON i.user_id=u.id
-     ORDER BY i.date_created DESC LIMIT 6"), MYSQLI_ASSOC);
+     ORDER BY i.date_created DESC LIMIT 6"));
 
 // ── Urgent Tickets (open/reply, last 5) ───────────────────────
-$urgent_tickets = mysqli_fetch_all(mysqli_query($conn,
+$urgent_tickets = fetch_all_assoc(mysqli_query($conn,
     "SELECT t.*, u.nama as nama_user FROM tickets t LEFT JOIN users u ON t.user_id=u.id
      WHERE t.status IN ('Open','Customer-Reply')
-     ORDER BY CASE t.status WHEN 'Customer-Reply' THEN 0 ELSE 1 END, t.created_at DESC LIMIT 5"), MYSQLI_ASSOC);
+     ORDER BY CASE t.status WHEN 'Customer-Reply' THEN 0 ELSE 1 END, t.created_at DESC LIMIT 5"));
 
 // ── WHM Nodes ─────────────────────────────────────────────────
-$whm_nodes = mysqli_fetch_all(mysqli_query($conn,
+$whm_nodes = fetch_all_assoc(mysqli_query($conn,
     "SELECT w.*,
      (SELECT COUNT(*) FROM orders WHERE whm_id=w.id AND status='active') active_acc,
      (SELECT COUNT(*) FROM orders WHERE whm_id=w.id AND status='suspended') susp_acc
-     FROM whm_servers w ORDER BY w.id ASC"), MYSQLI_ASSOC);
+     FROM whm_servers w ORDER BY w.id ASC"));
 
 // ── Revenue last 7 days spark ──────────────────────────────────
-$spark_data = mysqli_fetch_all(mysqli_query($conn,
+$spark_data = fetch_all_assoc(mysqli_query($conn,
     "SELECT DATE(created_at) d, COUNT(*) orders, IFNULL(SUM(CASE WHEN status_pembayaran='success' THEN total_harga ELSE 0 END),0) rev
      FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-     GROUP BY DATE(created_at) ORDER BY d"), MYSQLI_ASSOC);
+     GROUP BY DATE(created_at) ORDER BY d"));
 $spark_days = [];
 for($i=6;$i>=0;$i--) { $d=date('Y-m-d',strtotime("-$i days")); $spark_days[$d]=['orders'=>0,'rev'=>0]; }
 foreach($spark_data as $s) $spark_days[$s['d']] = ['orders'=>(int)$s['orders'],'rev'=>(int)$s['rev']];
-
 $spark_rev_max = max(1, max(array_column($spark_days,'rev')));
 
 // ── New users today ────────────────────────────────────────────
 $new_today = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) c FROM users WHERE DATE(created_at)=CURDATE()"))['c'] ?? 0;
 
 // ── Expiring soon (next 7 days) ────────────────────────────────
-$expiring_soon = mysqli_fetch_all(mysqli_query($conn,
+$expiring_soon = fetch_all_assoc(mysqli_query($conn,
     "SELECT o.*, u.nama as nama_user FROM orders o LEFT JOIN users u ON o.user_id=u.id
      WHERE o.status='active' AND o.expiry_date BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)
-     ORDER BY o.expiry_date ASC LIMIT 5"), MYSQLI_ASSOC);
+     ORDER BY o.expiry_date ASC LIMIT 5"));
 
 $page_title = "Dashboard";
 include __DIR__ . '/library/header.php';
@@ -298,12 +304,10 @@ include __DIR__ . '/library/header.php';
             <div class="cb p-0">
                 <?php foreach($recent_orders as $o):
                     $s = $o['status'];
-                    $badge = match($s) {
-                        'active'     => '<span class="qb qb-ok"><i class="ph-fill ph-check"></i> active</span>',
-                        'suspended'  => '<span class="qb qb-err">suspend</span>',
-                        'processing' => '<span class="qb qb-acc">process</span>',
-                        default      => '<span class="qb qb-warn">pending</span>',
-                    };
+                    if ($s === 'active')          $badge = '<span class="qb qb-ok"><i class="ph-fill ph-check"></i> active</span>';
+                    elseif ($s === 'suspended')   $badge = '<span class="qb qb-err">suspend</span>';
+                    elseif ($s === 'processing')  $badge = '<span class="qb qb-acc">process</span>';
+                    else                          $badge = '<span class="qb qb-warn">pending</span>';
                     $pay = $o['status_pembayaran'] === 'success'
                         ? '<span class="qb qb-ok" style="font-size:9px;">lunas</span>'
                         : '<span class="qb qb-warn" style="font-size:9px;">'.$o['status_pembayaran'].'</span>';
@@ -340,11 +344,9 @@ include __DIR__ . '/library/header.php';
             <div class="cb p-0">
                 <?php foreach($recent_invoices as $inv):
                     $is_overdue = ($inv['status']==='unpaid' && $inv['date_due'] && time()>strtotime($inv['date_due']));
-                    $ibadge = match($inv['status']) {
-                        'paid'      => '<span class="qb qb-ok">PAID</span>',
-                        'cancelled' => '<span class="qb qb-err">BATAL</span>',
-                        default     => '<span class="qb '.($is_overdue?'qb-err':'qb-warn').'">UNPAID</span>',
-                    };
+                    if ($inv['status'] === 'paid')          $ibadge = '<span class="qb qb-ok">PAID</span>';
+                    elseif ($inv['status'] === 'cancelled') $ibadge = '<span class="qb qb-err">BATAL</span>';
+                    else                                    $ibadge = '<span class="qb '.($is_overdue?'qb-err':'qb-warn').'">UNPAID</span>';
                 ?>
                 <div class="drow">
                     <div class="drow-main">
