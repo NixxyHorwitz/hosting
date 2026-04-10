@@ -53,7 +53,7 @@ if (isset($_GET['ajax_user']) && isset($_GET['uid'])) {
     
     // Orders / Hosting
     $orders = [];
-    $oq = mysqli_query($conn, "SELECT o.*, hp.nama_paket FROM orders o LEFT JOIN hosting_plans hp ON o.plan_id=hp.id WHERE o.user_id=$uid ORDER BY o.id DESC");
+    $oq = mysqli_query($conn, "SELECT o.*, hp.nama_paket FROM orders o LEFT JOIN hosting_plans hp ON o.hosting_plan_id=hp.id WHERE o.user_id=$uid ORDER BY o.id DESC");
     while($row = mysqli_fetch_assoc($oq)) $orders[] = $row;
     
     $u['orders'] = $orders;

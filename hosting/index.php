@@ -26,7 +26,7 @@ $stat_inv     = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(id) c FROM 
 
 // ─── Pesanan Terakhir ──────────────────────────────────────────
 $q_orders = mysqli_query($conn, "SELECT o.*, hp.nama_paket FROM orders o
-    LEFT JOIN hosting_plans hp ON o.plan_id = hp.id
+    LEFT JOIN hosting_plans hp ON o.hosting_plan_id = hp.id
     WHERE o.user_id = '$user_id' ORDER BY o.id DESC LIMIT 5");
 
 // ─── Running Text + Settings ───────────────────────────────────
