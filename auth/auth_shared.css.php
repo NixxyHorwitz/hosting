@@ -1,6 +1,6 @@
 <?php
 // Shared CSS for all auth pages (login, register, otp, forgot, reset)
-// Included via: <style><?php include __DIR__ . '/auth_shared.css.php'; ?></style>
+// Included via standard include statement inside a style tag.
 ?>
 *, *::before, *::after { box-sizing: border-box; }
 :root {
