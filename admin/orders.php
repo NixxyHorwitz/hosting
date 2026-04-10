@@ -29,14 +29,22 @@ if (isset($_GET['update_status']) && isset($_GET['id'])) {
     try {
         if ($new_status == 'active') {
             $whm->unsuspendAccount($cp_user);
-            sendEmailTemplate($u_email, $u_nama, 'hosting_unsuspended', ['nama' => $u_nama, 'domain' => $domain]);
+            $mail_result = sendEmailTemplate($u_email, $u_nama, 'hosting_unsuspended', ['nama' => $u_nama, 'domain' => $domain]);
         } elseif ($new_status == 'suspended') {
             $whm->suspendAccount($cp_user, "Aksi Admin");
-            sendEmailTemplate($u_email, $u_nama, 'hosting_suspended', ['nama' => $u_nama, 'domain' => $domain]);
+            $mail_result = sendEmailTemplate($u_email, $u_nama, 'hosting_suspended', ['nama' => $u_nama, 'domain' => $domain]);
+        } else {
+            $mail_result = true;
         }
         mysqli_query($conn, "UPDATE orders SET status = '$new_status' WHERE id = '$id'");
-        
-        header("Location: orders?res=success&msg=" . urlencode("Status $cp_user diubah ke $new_status"));
+
+        if ($mail_result === true) {
+            header("Location: orders?res=success&msg=" . urlencode("Status $cp_user diubah ke $new_status. Email notifikasi terkirim."));
+        } else {
+            // WHM berhasil, tapi email gagal — laporkan ke admin
+            $mail_err = is_string($mail_result) ? $mail_result : 'Template tidak ditemukan / SMTP gagal.';
+            header("Location: orders?res=warn&msg=" . urlencode("Status $cp_user diubah ke $new_status, tapi email GAGAL: " . $mail_err));
+        }
     } catch (Exception $e) {
         header("Location: orders?res=error&msg=" . urlencode($e->getMessage()));
     }
@@ -238,6 +246,8 @@ include __DIR__ . '/library/header.php';
     <?php if(isset($_GET['res'])): ?>
         <?php if($_GET['res'] == 'success'): ?>
         Swal.fire({ icon:'success', title:'Berhasil!', text:'<?= htmlspecialchars($_GET['msg'] ?? '') ?>', timer:2500, showConfirmButton:false, background:'var(--card)', color:'var(--text)' });
+        <?php elseif($_GET['res'] == 'warn'): ?>
+        Swal.fire({ icon:'warning', title:'Aksi Berhasil, Email Gagal', text:'<?= htmlspecialchars($_GET['msg'] ?? '') ?>', background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--warn)' });
         <?php elseif($_GET['res'] == 'error'): ?>
         Swal.fire({ icon:'error', title:'Gagal!', text:'<?= htmlspecialchars($_GET['msg'] ?? '') ?>', background:'var(--card)', color:'var(--text)', confirmButtonColor:'var(--accent)' });
         <?php endif; ?>
