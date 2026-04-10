@@ -273,10 +273,11 @@ if (!function_exists('base_url')) {
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <?php if(!empty($_site_logo)): ?>
-        <img src="<?= base_url('uploads/' . $_site_logo) ?>" alt="<?= $_site_name ?>" style="max-height:32px;max-width:130px;object-fit:contain;">
+        <img src="<?= base_url('uploads/' . $_site_logo) ?>" alt="<?= $_site_name ?>" style="max-height:28px;object-fit:contain;flex-shrink:0;">
         <?php else: ?>
-        <i class="bi bi-clouds-fill"></i> <?= $_site_name ?>
+        <i class="bi bi-clouds-fill"></i>
         <?php endif; ?>
+        <?= $_site_name ?>
     </div>
     
     <div class="nav flex-column mt-2">
