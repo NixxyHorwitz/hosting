@@ -96,6 +96,13 @@ if (isset($conn)) {
         <a href="<?= base_url('admin/landing_settings') ?>" class="sb-link <?= (strpos($current_uri, 'landing_settings') !== false) ? 'active' : '' ?>">
             <i class="ph ph-layout"></i> Landing Editor
         </a>
+        <div class="sb-label mt-3">Konten</div>
+        <a href="<?= base_url('admin/content') ?>" class="sb-link <?= (strpos($current_uri, '/content') !== false) ? 'active' : '' ?>">
+            <i class="ph ph-slideshow"></i> Banner &amp; Running Text
+        </a>
+        <a href="<?= base_url('admin/news') ?>" class="sb-link <?= (strpos($current_uri, '/news') !== false) ? 'active' : '' ?>">
+            <i class="ph ph-megaphone"></i> News &amp; Pengumuman
+        </a>
     </div>
 
     <div class="sb-user">
