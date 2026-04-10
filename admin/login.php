@@ -1,6 +1,18 @@
 <?php
 if(!defined('NS1')) include __DIR__ . '/../config/database.php';
 
+// Fetch site name dari DB
+$_admin_site_name = 'Admin Panel';
+$_admin_site_logo = '';
+$_admin_site_favicon = '';
+$_r = @mysqli_query($conn, "SELECT site_name, site_logo, site_favicon FROM settings LIMIT 1");
+if ($_r && $_row = mysqli_fetch_assoc($_r)) {
+    if (!empty($_row['site_name']))    $_admin_site_name    = htmlspecialchars($_row['site_name']);
+    if (!empty($_row['site_logo']))    $_admin_site_logo    = htmlspecialchars($_row['site_logo']);
+    if (!empty($_row['site_favicon'])) $_admin_site_favicon = htmlspecialchars($_row['site_favicon']);
+}
+$_admin_fav = !empty($_admin_site_favicon) ? $_admin_site_favicon : $_admin_site_logo;
+
 // Jika sudah login admin, langsung ke dashboard admin
 if (isset($_SESSION['admin_id'])) {
     header("Location: dashboard.php"); 
@@ -43,7 +55,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - CloudAdmin</title>
+    <title>Admin Login - <?= $_admin_site_name ?></title>
+    <?php if(!empty($_admin_fav)): ?>
+    <link rel="icon" href="/uploads/<?= $_admin_fav ?>" type="image/x-icon">
+    <?php endif; ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css" rel="stylesheet" />
@@ -122,8 +137,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     <div class="row justify-content-center">
         <div class="col-md-5 col-lg-4">
             <div class="text-center mb-4">
+                <?php if(!empty($_admin_site_logo)): ?>
+                <div class="brand-logo" style="background:transparent;">
+                    <img src="/uploads/<?= $_admin_site_logo ?>" alt="<?= $_admin_site_name ?>" style="max-height:42px;max-width:120px;object-fit:contain;">
+                </div>
+                <?php else: ?>
                 <div class="brand-logo"><i class="ph-fill ph-cloud-lightning"></i></div>
-                <h4 class="fw-bold text-white mb-1" style="font-size: 20px;">Cloud<span style="color: #3b82f6;">Admin</span></h4>
+                <?php endif; ?>
+                <h4 class="fw-bold text-white mb-1" style="font-size: 20px;"><?= $_admin_site_name ?> <span style="color:#3b82f6;font-weight:400;font-size:13px;">Admin</span></h4>
                 <p class="text-muted" style="font-size: 13px;">Secure Control Panel Access</p>
             </div>
             
@@ -150,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 </form>
             </div>
             <p class="text-center mt-4" style="color: #4b5e7a; font-size: 12px;">
-                &copy; <?php echo date('Y'); ?> Secure Access System
+                &copy; <?php echo date('Y'); ?> <?= $_admin_site_name ?> &mdash; Secure Access
             </p>
         </div>
     </div>
