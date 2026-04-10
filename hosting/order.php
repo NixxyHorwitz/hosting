@@ -160,14 +160,9 @@ document.addEventListener('DOMContentLoaded', function() {
         html: `<p style="font-size:14px;color:#555;line-height:1.7;">
             Maaf, seluruh kapasitas server kami sedang digunakan secara maksimal.<br><br>
             Tim teknis kami sedang bekerja untuk memperluas kapasitas.
-            Silakan coba kembali dalam <strong>beberapa saat</strong> atau
-            <a href="/hosting/tickets" style="color:#007bff;">hubungi tim support kami</a> untuk informasi lebih lanjut.
         </p>`,
         confirmButtonText: '← Kembali ke Paket',
         confirmButtonColor: '#007bff',
-        showCancelButton: true,
-        cancelButtonText: 'Hubungi Support',
-        cancelButtonColor: '#6c757d',
         allowOutsideClick: false,
         customClass: { popup: 'swal-wide' }
     }).then(function(result) {
