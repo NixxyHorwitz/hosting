@@ -20,7 +20,7 @@ if (isset($_SESSION['user_id']) && isset($conn)) {
     $user_nama = $data['nama'] ?? "User";
     
     // Count active hosting
-    $q_act = @mysqli_query($conn, "SELECT COUNT(id) as c FROM user_hosting WHERE user_id='$user_id' AND status='aktif'");
+    $q_act = @mysqli_query($conn, "SELECT COUNT(id) as c FROM orders WHERE user_id='$user_id' AND status='active'");
     if ($q_act) $hosting_aktif = mysqli_fetch_assoc($q_act)['c'] ?? 0;
 } else {
     $user_nama = "Tamu"; 

@@ -35,7 +35,6 @@ if (isset($_GET['update_status']) && isset($_GET['id'])) {
             sendEmailTemplate($u_email, $u_nama, 'hosting_suspended', ['nama' => $u_nama, 'domain' => $domain]);
         }
         mysqli_query($conn, "UPDATE orders SET status = '$new_status' WHERE id = '$id'");
-        mysqli_query($conn, "UPDATE user_hosting SET status = '" . ($new_status == 'active' ? 'aktif' : 'suspended') . "' WHERE order_id = '$id'");
         
         header("Location: orders?res=success&msg=" . urlencode("Status $cp_user diubah ke $new_status"));
     } catch (Exception $e) {
